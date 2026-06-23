@@ -1,429 +1,289 @@
-/* ============ 기본 스타일 ============ */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+:root {
+  --bg: #f4efe6;
+  --card: #fffaf2;
+  --ink: #1f2933;
+  --muted: #6b7280;
+  --line: #e7d9c7;
+  --accent: #d66b3d;
+  --accent-2: #2f6f62;
+  --accent-3: #f3b63f;
+  --good: #2e8b57;
+  --bad: #b54747;
+  --shadow: 0 18px 40px rgba(67, 46, 24, 0.08);
 }
 
-:root {
-    --primary-color: #FF6B6B;
-    --secondary-color: #4ECDC4;
-    --accent-color: #FFE66D;
-    --text-dark: #2C3E50;
-    --text-light: #7F8C8D;
-    --bg-light: #F8F9FA;
-    --bg-white: #FFFFFF;
-    --border-color: #E0E0E0;
-    --success-color: #51CF66;
-    --warning-color: #FFA94D;
-    --danger-color: #FF8787;
+* {
+  box-sizing: border-box;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-        sans-serif;
-    background-color: var(--bg-light);
-    color: var(--text-dark);
-    line-height: 1.6;
+  margin: 0;
+  font-family: "Segoe UI", "Apple SD Gothic Neo", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top right, rgba(243, 182, 63, 0.16), transparent 22%),
+    radial-gradient(circle at left 20%, rgba(214, 107, 61, 0.12), transparent 18%),
+    var(--bg);
 }
 
-/* ============ 레이아웃 ============ */
-.container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px;
+.page-shell {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px;
 }
 
-header.header {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    color: white;
-    padding: 40px 20px;
-    border-radius: 8px;
-    margin-bottom: 30px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+.hero {
+  background: linear-gradient(135deg, #fff6e7, #fbe0c8);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: var(--shadow);
 }
 
-header.header h1 {
-    font-size: 2.5em;
-    margin-bottom: 10px;
+.eyebrow {
+  margin: 0 0 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 12px;
+  color: var(--accent-2);
 }
 
-header.header p {
-    font-size: 1.1em;
-    opacity: 0.9;
+.hero h1 {
+  margin: 0;
+  font-size: clamp(32px, 5vw, 52px);
 }
 
-main.content {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 30px;
-    margin-bottom: 30px;
+.hero-copy {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 16px;
 }
 
-aside.sidebar {
-    background: white;
-    padding: 25px;
-    border-radius: 8px;
-    border-left: 4px solid var(--primary-color);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* ============ 카드 ============ */
+.weather-panel,
+.panel,
 .card {
-    background: white;
-    padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border-top: 4px solid var(--secondary-color);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
 }
 
-.card h3 {
-    color: var(--text-dark);
-    margin-bottom: 20px;
-    font-size: 1.3em;
+.weather-panel {
+  margin-top: 22px;
+  padding: 22px 24px;
 }
 
-/* ============ 날씨 카드 ============ */
-.weather-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-top: none;
+.weather-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
 }
 
-.weather-card #weather-content {
-    font-size: 1.2em;
+.weather-row p,
+.weather-row strong {
+  margin: 0 0 6px;
 }
 
 .weather-icon {
-    font-size: 3em;
-    margin-right: 20px;
+  font-size: 44px;
 }
 
-/* ============ 추천 섹션 ============ */
-.recommendations-section {
-    margin-bottom: 30px;
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 22px;
+  margin-top: 22px;
 }
 
-.recommendations-section h2 {
-    margin-bottom: 20px;
-    color: var(--text-dark);
-    font-size: 1.8em;
+.main-content {
+  display: grid;
+  gap: 22px;
 }
 
-.recommendations-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.recommendation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
 }
 
 .restaurant-card {
-    background: white;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
-    padding: 20px;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
 }
 
-.restaurant-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-    border-color: var(--primary-color);
+.restaurant-card h3 {
+  margin: 12px 0;
+  font-size: 22px;
 }
 
-.restaurant-card h4 {
-    color: var(--primary-color);
-    font-size: 1.3em;
-    margin-bottom: 10px;
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #f8e5d7;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.restaurant-info {
-    display: grid;
-    gap: 8px;
-    margin-bottom: 15px;
-    font-size: 0.95em;
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 14px 0;
 }
 
-.restaurant-info p {
-    margin: 0;
-    color: var(--text-light);
+.meta-grid dt {
+  font-size: 12px;
+  color: var(--muted);
 }
 
-.restaurant-info strong {
-    color: var(--text-dark);
-}
-
-.score {
-    background: var(--accent-color);
-    color: var(--text-dark);
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-weight: bold;
-    display: inline-block;
+.meta-grid dd {
+  margin: 3px 0 0;
+  font-weight: 700;
 }
 
 .reason {
-    background: var(--bg-light);
-    padding: 10px;
-    border-left: 3px solid var(--secondary-color);
-    margin: 10px 0;
-    font-style: italic;
-    color: var(--text-light);
+  min-height: 72px;
+  color: var(--muted);
+  line-height: 1.5;
 }
 
-/* ============ 버튼 ============ */
-.btn {
-    padding: 10px 16px;
-    border: none;
-    border-radius: 6px;
-    font-size: 1em;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: 600;
-    width: 100%;
-    margin-bottom: 10px;
+.panel {
+  padding: 20px;
 }
 
-.btn-primary {
-    background-color: var(--primary-color);
-    color: white;
+.stack-list {
+  display: grid;
+  gap: 12px;
 }
 
-.btn-primary:hover:not(:disabled) {
-    background-color: #e55555;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+.list-item {
+  padding: 14px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid #efdfcf;
+  display: grid;
+  gap: 6px;
 }
 
-.btn-secondary {
-    background-color: var(--secondary-color);
-    color: white;
+.list-item span,
+.muted,
+.source {
+  color: var(--muted);
+  font-size: 14px;
 }
 
-.btn-secondary:hover:not(:disabled) {
-    background-color: #3bb8ad;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(78, 205, 196, 0.3);
+.action-group {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0 20px;
 }
 
-.btn-small {
-    padding: 8px 12px;
-    font-size: 0.9em;
-    width: auto;
-    margin: 5px 0;
+button {
+  border: none;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
 }
 
-.btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
-.btn-visit {
-    background-color: var(--success-color);
-    color: white;
-    padding: 8px 12px;
-    font-size: 0.85em;
-    width: 100%;
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.btn-visit:hover {
-    background-color: #40c057;
+.primary-button {
+  background: var(--accent);
+  color: white;
 }
 
-/* ============ 리스트 ============ */
-.visits-list,
-.restaurants-list {
-    display: grid;
-    gap: 10px;
+.secondary-button,
+.ghost-button {
+  background: #fff;
+  color: var(--ink);
+  border: 1px solid var(--line);
 }
 
-.visit-item,
-.restaurant-item {
-    background: var(--bg-light);
-    padding: 12px;
-    border-radius: 6px;
-    border-left: 3px solid var(--secondary-color);
+.ghost-button {
+  padding: 9px 12px;
 }
 
-.visit-item {
-    font-size: 0.95em;
-    line-height: 1.5;
-}
-
-.restaurant-item {
-    display: grid;
-    gap: 5px;
-}
-
-.restaurant-item strong {
-    color: var(--primary-color);
-}
-
-.restaurant-item small {
-    color: var(--text-light);
-}
-
-/* ============ Expander ============ */
-.expander {
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    overflow: hidden;
-}
-
-.expander-btn {
-    width: 100%;
-    padding: 12px;
-    background: white;
-    border: none;
-    cursor: pointer;
-    font-size: 1em;
-    text-align: left;
-    transition: background 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.expander-btn:hover {
-    background: var(--bg-light);
-}
-
-.expander-btn .icon {
-    display: inline-block;
-    transition: transform 0.3s ease;
-}
-
-.expander-btn.active .icon {
-    transform: rotate(90deg);
-}
-
-.expander-content {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease;
-}
-
-.expander-content.active {
-    max-height: 1000px;
-}
-
-.expander-content-inner {
-    padding: 15px;
-    border-top: 1px solid var(--border-color);
-}
-
-/* ============ 상태 메시지 ============ */
 .status-message {
-    padding: 12px;
-    border-radius: 6px;
-    margin-top: 15px;
-    display: none;
-    font-weight: 600;
+  min-height: 24px;
+  font-weight: 700;
 }
 
 .status-message.success {
-    background: var(--success-color);
-    color: white;
-    display: block;
+  color: var(--good);
 }
 
 .status-message.error {
-    background: var(--danger-color);
-    color: white;
-    display: block;
+  color: var(--bad);
 }
 
-.status-message.warning {
-    background: var(--warning-color);
-    color: var(--text-dark);
-    display: block;
+.status-message.saving {
+  color: var(--accent-2);
 }
 
-/* ============ 로딩 상태 ============ */
-.loading {
-    color: var(--text-light);
-    font-style: italic;
-    text-align: center;
-    padding: 20px;
-}
-
-/* ============ 관리 섹션 ============ */
-#management-buttons {
-    margin-bottom: 20px;
+.env-box {
+  margin-top: 20px;
 }
 
 pre {
-    background: var(--bg-light);
-    padding: 12px;
-    border-radius: 6px;
-    overflow-x: auto;
-    font-size: 0.85em;
-    color: var(--text-dark);
+  margin: 10px 0 0;
+  padding: 14px;
+  overflow: auto;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid var(--line);
 }
 
-code {
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+.loading {
+  color: var(--muted);
 }
 
-hr {
-    margin: 20px 0;
-    border: none;
-    border-top: 1px solid var(--border-color);
+#restaurants-wrapper.collapsed {
+  display: none;
 }
 
-/* ============ 반응형 ============ */
-@media (max-width: 768px) {
-    .container {
-        padding: 10px;
-    }
-
-    header.header {
-        padding: 20px 15px;
-    }
-
-    header.header h1 {
-        font-size: 1.8em;
-    }
-
-    main.content {
-        grid-template-columns: 1fr;
-    }
-
-    .recommendations-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .restaurant-card h4 {
-        font-size: 1.1em;
-    }
-
-    .btn {
-        padding: 8px 12px;
-        font-size: 0.9em;
-    }
-
-    aside.sidebar {
-        margin-top: 20px;
-    }
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
 }
 
-@media (max-width: 480px) {
-    header.header h1 {
-        font-size: 1.4em;
-    }
+@media (max-width: 640px) {
+  .page-shell {
+    padding: 14px;
+  }
 
-    .recommendations-grid {
-        grid-template-columns: 1fr;
-    }
+  .hero,
+  .weather-panel,
+  .panel {
+    padding: 18px;
+  }
 
-    .btn {
-        padding: 6px 10px;
-        font-size: 0.85em;
-    }
+  .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 
-    pre {
-        font-size: 0.75em;
-        padding: 8px;
-    }
+  .meta-grid {
+    grid-template-columns: 1fr;
+  }
 }

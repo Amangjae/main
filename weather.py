@@ -1,12 +1,15 @@
 import os
-import requests
-from datetime import datetime
-from functools import lru_cache
 import time
+from datetime import datetime
+
+import requests
 
 
 OPENWEATHER_API_URL = "https://api.openweathermap.org/data/2.5/weather"
-CACHE_TTL = 3600  # 1시간
+DEFAULT_LAT = 37.5663
+DEFAULT_LON = 126.9922
+CACHE_TTL_SECONDS = 1800
+_cached_weather: tuple[float, dict] | None = None
 
 
 def _sample_weather() -> dict:
@@ -14,16 +17,16 @@ def _sample_weather() -> dict:
     if month in (12, 1, 2):
         return {
             "category": "cold",
-            "summary": "저저하고 건조함",
+            "summary": "쌀쌀하고 건조함",
             "temperature_c": 3,
-            "note": "따뜻한 국물 음식에 가깝",
+            "note": "따뜻한 국물 음식에 가점",
         }
     if month in (6, 7, 8):
         return {
             "category": "hot",
             "summary": "덥고 습함",
             "temperature_c": 29,
-            "note": "실내 좌석과 가벼운 메뉴에 가깝",
+            "note": "실내 좌석과 가벼운 메뉴에 가점",
         }
     return {
         "category": "clear",
@@ -33,81 +36,50 @@ def _sample_weather() -> dict:
     }
 
 
-def _get_openweather(lat: float, lon: float, api_key: str) -> dict:
-    """OpenWeather API 호출 (실제 날씨 데이터)"""
-    try:
-        params = {
-            "lat": lat,
-            "lon": lon,
-            "appid": api_key,
-            "units": "metric",
-        }
-        response = requests.get(OPENWEATHER_API_URL, params=params, timeout=5)
-        response.raise_for_status()
-        data = response.json()
-        
-        temp = int(data["main"]["temp"])
-        description = data["weather"][0]["main"].lower()
-        
-        # 날씨에 따라 카테고리 판단
-        if "rain" in description or "drizzle" in description:
-            category = "rainy"
-            summary = "비가 오거나 흐림"
-            note = "따뜻한 국물 음식에 가깝"
-        elif "clear" in description or "sunny" in description:
-            category = "clear"
-            summary = "맑음"
-            note = "무난한 점심 메뉴 중심 추천"
-        elif temp > 25:
-            category = "hot"
-            summary = "덥고 습함"
-            note = "실내 좌석과 가벼운 메뉴에 가깝"
-        elif temp < 5:
-            category = "cold"
-            summary = "저저하고 건조함"
-            note = "따뜻한 국물 음식에 가깝"
-        else:
-            category = "clear"
-            summary = "맑음"
-            note = "무난한 점심 메뉴 중심 추천"
-        
-        return {
-            "category": category,
-            "summary": summary,
-            "temperature_c": temp,
-            "note": note,
-        }
-    except Exception as e:
-        print(f"Weather API 호출 실패: {e}")
-        return _sample_weather()
+def _classify_weather(description: str, temperature_c: int) -> tuple[str, str, str]:
+    desc = description.lower()
+    if "rain" in desc or "drizzle" in desc or "thunderstorm" in desc:
+        return "rainy", "비 또는 소나기", "실내 좌석과 국물 메뉴에 가점"
+    if temperature_c >= 28:
+        return "hot", "덥고 습함", "시원한 면류와 실내 좌석에 가점"
+    if temperature_c <= 5:
+        return "cold", "쌀쌀하고 건조함", "따뜻한 국물 음식에 가점"
+    return "clear", "맑음", "무난한 점심 메뉴 중심 추천"
 
 
-class WeatherCache:
-    """간단한 시간 기반 캐시"""
-    def __init__(self, ttl: int = 3600):
-        self.cache = None
-        self.cache_time = 0
-        self.ttl = ttl
-    
-    def get(self, func, *args, **kwargs):
-        now = time.time()
-        if self.cache is None or (now - self.cache_time) > self.ttl:
-            self.cache = func(*args, **kwargs)
-            self.cache_time = now
-        return self.cache
-
-
-_weather_cache = WeatherCache(ttl=CACHE_TTL)
+def _fetch_openweather(lat: float, lon: float, api_key: str) -> dict:
+    response = requests.get(
+        OPENWEATHER_API_URL,
+        params={"lat": lat, "lon": lon, "appid": api_key, "units": "metric"},
+        timeout=5,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    temperature_c = round(payload["main"]["temp"])
+    category, summary, note = _classify_weather(payload["weather"][0]["main"], temperature_c)
+    return {
+        "category": category,
+        "summary": summary,
+        "temperature_c": temperature_c,
+        "note": note,
+    }
 
 
 def get_lunch_weather() -> dict:
+    global _cached_weather
+
     api_key = os.getenv("WEATHER_API_KEY", "").strip()
-    
-    # 좌표 (서울 을지로 기준)
-    lat = 37.5642
-    lon = 126.9988
-    
-    if api_key:
-        return _weather_cache.get(_get_openweather, lat, lon, api_key)
-    else:
+    if not api_key:
         return _sample_weather()
+
+    now = time.time()
+    if _cached_weather and now - _cached_weather[0] < CACHE_TTL_SECONDS:
+        return _cached_weather[1]
+
+    try:
+        weather = _fetch_openweather(DEFAULT_LAT, DEFAULT_LON, api_key)
+    except Exception:
+        weather = _sample_weather()
+
+    _cached_weather = (now, weather)
+    return weather

@@ -1,93 +1,83 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>회사 점심 추천기</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-    <div class="container">
-        <!-- 헤더 -->
-        <header class="header">
-            <h1>🍽️ 회사 점심 추천기</h1>
-            <p id="config-info"></p>
-        </header>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Office Lunch Recommender</p>
+          <h1>회사 점심 추천기</h1>
+          <p id="config-info" class="hero-copy">설정을 불러오는 중입니다.</p>
+        </div>
+      </header>
 
-        <!-- 날씨 섹션 -->
-        <section class="card weather-card">
-            <div id="weather-content">
-                <p class="loading">날씨 정보 로드 중...</p>
+      <section class="weather-panel">
+        <div id="weather-content" class="loading">날씨 정보를 불러오는 중입니다.</div>
+      </section>
+
+      <div class="layout">
+        <main class="main-content">
+          <section>
+            <div class="section-heading">
+              <h2>오늘의 추천 4곳</h2>
+              <button class="ghost-button" onclick="refreshData()">새로고침</button>
             </div>
-        </section>
+            <div id="recommendations" class="recommendation-grid">
+              <p class="loading">추천 데이터를 불러오는 중입니다.</p>
+            </div>
+          </section>
 
-        <!-- 주요 컨텐츠 -->
-        <main class="content">
-            <!-- 추천 식당 -->
-            <section class="recommendations-section">
-                <h2>오늘의 추천 4곳</h2>
-                <div id="recommendations" class="recommendations-grid">
-                    <p class="loading">추천 식당 로드 중...</p>
-                </div>
-            </section>
+          <section class="panel">
+            <h3>최근 방문 이력</h3>
+            <div id="visits" class="stack-list">
+              <p class="loading">방문 이력을 불러오는 중입니다.</p>
+            </div>
+          </section>
 
-            <!-- 왼쪽: 최근 방문 -->
-            <section class="card">
-                <h3>최근 방문 이력</h3>
-                <div id="visits" class="visits-list">
-                    <p class="loading">방문 이력 로드 중...</p>
-                </div>
-            </section>
-
-            <!-- 오른쪽: 전체 식당 -->
-            <section class="card">
-                <h3>등록된 식당 목록</h3>
-                <div class="expander">
-                    <button class="expander-btn" onclick="toggleExpander(this)">
-                        <span class="icon">▶</span> 식당 목록 보기
-                    </button>
-                    <div class="expander-content">
-                        <div id="restaurants" class="restaurants-list">
-                            <p class="loading">식당 목록 로드 중...</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
+          <section class="panel">
+            <div class="section-heading">
+              <h3>등록된 식당 목록</h3>
+              <button class="ghost-button" onclick="toggleRestaurants(this)">접기/펼치기</button>
+            </div>
+            <div id="restaurants-wrapper">
+              <div id="restaurants" class="stack-list">
+                <p class="loading">식당 목록을 불러오는 중입니다.</p>
+              </div>
+            </div>
+          </section>
         </main>
 
-        <!-- 관리 섹션 -->
-        <aside class="sidebar">
-            <h3>관리</h3>
-            <p>API 키가 없어도 샘플 데이터 기반으로 동작합니다.</p>
-            
-            <div id="management-buttons">
-                <button class="btn btn-primary" onclick="importFromKakao()" id="kakao-btn">
-                    📍 카카오 API로 주변 식당 가져오기
-                </button>
-                <button class="btn btn-secondary" onclick="resetData()">
-                    🔄 초기 데이터 다시 세팅
-                </button>
-                <button class="btn btn-secondary" onclick="refreshData()">
-                    🔃 데이터 새로고침
-                </button>
-                <button class="btn btn-secondary" onclick="clearCache()">
-                    🗑️ 캐시 초기화
-                </button>
-            </div>
+        <aside class="sidebar panel">
+          <h3>관리</h3>
+          <p class="muted">API 키가 없어도 샘플 데이터 기반으로 동작합니다.</p>
 
-            <div id="status-message" class="status-message"></div>
+          <div class="action-group">
+            <button id="kakao-btn" class="primary-button" onclick="importFromKakao()">
+              카카오 API로 주변 식당 가져오기
+            </button>
+            <button class="secondary-button" onclick="resetData()">초기 데이터 다시 세팅</button>
+            <button class="secondary-button" onclick="clearCache()">서버 캐시 비우기</button>
+          </div>
 
-            <hr>
+          <div id="status-message" class="status-message"></div>
 
+          <div class="env-box">
             <h4>환경 변수 예시</h4>
             <pre><code>KAKAO_REST_API_KEY=...
 WEATHER_API_KEY=...
 LUNCH_BASE_ADDRESS=서울특별시 중구 을지로 16
 SEARCH_RADIUS_METERS=1500
 DB_PATH=data/lunch_recommender.db</code></pre>
+          </div>
         </aside>
+      </div>
     </div>
 
     <script src="/static/app.js"></script>
-</body>
+  </body>
 </html>

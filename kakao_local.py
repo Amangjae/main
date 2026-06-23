@@ -1,7 +1,8 @@
 import os
-import requests
 import time
-from typing import Optional
+from typing import Any
+
+import requests
 
 
 DEFAULT_ADDRESS = "서울특별시 중구 을지로 16"
@@ -9,12 +10,11 @@ DEFAULT_RADIUS = int(os.getenv("SEARCH_RADIUS_METERS", "1500"))
 ADDRESS_SEARCH_URL = "https://dapi.kakao.com/v2/local/search/address.json"
 CATEGORY_SEARCH_URL = "https://dapi.kakao.com/v2/local/search/category.json"
 FOOD_CATEGORY_CODE = "FD6"
-
-# API 응답 캐싱
-_geocode_cache = {}
-_search_cache = {}
-CACHE_TTL = 3600  # 1시간
-REQUEST_TIMEOUT = 10  # 10초
+REQUEST_TIMEOUT = 10
+CACHE_TTL_SECONDS = 1800
+_session = requests.Session()
+_geocode_cache: dict[str, tuple[float, dict[str, str]]] = {}
+_search_cache: dict[str, tuple[float, list[dict[str, Any]]]] = {}
 
 
 class KakaoLocalError(Exception):
@@ -25,14 +25,29 @@ def has_kakao_api_key() -> bool:
     return bool(os.getenv("KAKAO_REST_API_KEY", "").strip())
 
 
-def _api_headers() -> dict:
+def _api_headers() -> dict[str, str]:
     api_key = os.getenv("KAKAO_REST_API_KEY", "").strip()
     if not api_key:
         raise KakaoLocalError("KAKAO_REST_API_KEY가 설정되어 있지 않습니다.")
     return {"Authorization": f"KakaoAK {api_key}"}
 
 
-def _sample_restaurants() -> list[dict]:
+def _cache_get(cache: dict, key: str):
+    cached = cache.get(key)
+    if not cached:
+        return None
+    timestamp, value = cached
+    if time.time() - timestamp > CACHE_TTL_SECONDS:
+        del cache[key]
+        return None
+    return value
+
+
+def _cache_set(cache: dict, key: str, value) -> None:
+    cache[key] = (time.time(), value)
+
+
+def _sample_restaurants() -> list[dict[str, Any]]:
     return [
         {
             "external_id": "sample-1",
@@ -142,7 +157,7 @@ def _sample_restaurants() -> list[dict]:
         {
             "external_id": "sample-6",
             "kakao_place_id": None,
-            "name": "을지로쌈밥",
+            "name": "을지로짬뽕",
             "category": "중식",
             "address": "서울 중구 을지로 일대",
             "road_address": "서울 중구 을지로 일대",
@@ -163,7 +178,7 @@ def _sample_restaurants() -> list[dict]:
         {
             "external_id": "sample-7",
             "kakao_place_id": None,
-            "name": "회현비비밥",
+            "name": "회현비빔밥",
             "category": "한식",
             "address": "서울 중구 회현 일대",
             "road_address": "서울 중구 회현 일대",
@@ -205,31 +220,17 @@ def _sample_restaurants() -> list[dict]:
     ]
 
 
-def _cache_get(cache: dict, key: str) -> Optional[dict]:
-    """캐시에서 유효한 항목 조회"""
-    if key in cache:
-        value, timestamp = cache[key]
-        if time.time() - timestamp < CACHE_TTL:
-            return value
-        else:
-            del cache[key]
-    return None
+def search_nearby_restaurants(address: str | None = None, radius_m: int = DEFAULT_RADIUS, keyword: str = "맛집") -> list[dict[str, Any]]:
+    return _sample_restaurants()
 
 
-def _cache_set(cache: dict, key: str, value: dict) -> None:
-    """캐시에 항목 저장"""
-    cache[key] = (value, time.time())
-
-
-def geocode_address(address: str) -> dict:
-    """주소 좌표 변환 (캐싱 적용)"""
-    # 캐시 확인
+def geocode_address(address: str) -> dict[str, str]:
     cached = _cache_get(_geocode_cache, address)
     if cached:
         return cached
-    
+
     try:
-        response = requests.get(
+        response = _session.get(
             ADDRESS_SEARCH_URL,
             headers=_api_headers(),
             params={"query": address},
@@ -243,34 +244,29 @@ def geocode_address(address: str) -> dict:
     if not documents:
         raise KakaoLocalError("기준 주소를 좌표로 변환하지 못했습니다.")
 
-    first = documents[0]
     result = {
-        "address_name": first.get("address_name", address),
-        "x": first.get("x"),
-        "y": first.get("y"),
+        "address_name": documents[0].get("address_name", address),
+        "x": documents[0].get("x", ""),
+        "y": documents[0].get("y", ""),
     }
-    
-    # 캐시 저장
     _cache_set(_geocode_cache, address, result)
     return result
 
 
-def search_food_places_by_category(x: str, y: str, radius_m: int) -> list[dict]:
-    """음식점 검색 (캐싱 적용, 타임아웃 추가)"""
+def search_food_places_by_category(x: str, y: str, radius_m: int) -> list[dict[str, Any]]:
     cache_key = f"{x}:{y}:{radius_m}"
-    
-    # 캐시 확인
     cached = _cache_get(_search_cache, cache_key)
     if cached:
         return cached
-    
-    restaurants = []
+
+    restaurants: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
     page = 1
-    max_pages = 3  # 최대 페이지 수 제한으로 성능 향상
+    max_pages = 3
 
     while page <= max_pages:
         try:
-            response = requests.get(
+            response = _session.get(
                 CATEGORY_SEARCH_URL,
                 headers=_api_headers(),
                 params={
@@ -289,12 +285,15 @@ def search_food_places_by_category(x: str, y: str, radius_m: int) -> list[dict]:
             raise KakaoLocalError(f"음식점 검색 API 호출에 실패했습니다: {exc}") from exc
 
         data = response.json()
-        documents = data.get("documents", [])
-        for item in documents:
+        for item in data.get("documents", []):
+            place_id = item.get("id")
+            if not place_id or place_id in seen_ids:
+                continue
+            seen_ids.add(place_id)
             restaurants.append(
                 {
-                    "external_id": f"kakao-{item['id']}",
-                    "kakao_place_id": item.get("id"),
+                    "external_id": f"kakao-{place_id}",
+                    "kakao_place_id": place_id,
                     "name": item.get("place_name", ""),
                     "category": item.get("category_name") or item.get("category_group_name") or "음식점",
                     "address": item.get("address_name", ""),
@@ -315,36 +314,19 @@ def search_food_places_by_category(x: str, y: str, radius_m: int) -> list[dict]:
                 }
             )
 
-        meta = data.get("meta", {})
-        if meta.get("is_end", True):
+        if data.get("meta", {}).get("is_end", True):
             break
         page += 1
 
-    # 캐시 저장
     _cache_set(_search_cache, cache_key, restaurants)
     return restaurants
 
 
-def search_nearby_restaurants(
-    address: str | None = None,
-    radius_m: int = DEFAULT_RADIUS,
-    keyword: str = "맛집",
-) -> list[dict]:
-    """샘플 식당 데이터 반환 (기존 호환성 유지)"""
-    return _sample_restaurants()
-
-
-def fetch_nearby_restaurants(address: str | None = None, radius_m: int | None = None) -> list[dict]:
-    """주변 음식점 조회"""
+def fetch_nearby_restaurants(address: str | None = None, radius_m: int | None = None) -> list[dict[str, Any]]:
     address = address or os.getenv("LUNCH_BASE_ADDRESS", DEFAULT_ADDRESS)
     radius = radius_m or int(os.getenv("SEARCH_RADIUS_METERS", str(DEFAULT_RADIUS)))
-
     coordinates = geocode_address(address)
-    restaurants = search_food_places_by_category(
-        x=coordinates["x"],
-        y=coordinates["y"],
-        radius_m=radius,
-    )
+    restaurants = search_food_places_by_category(coordinates["x"], coordinates["y"], radius)
     if not restaurants:
         raise KakaoLocalError("카카오 API로 조회된 식당이 없습니다.")
     return restaurants

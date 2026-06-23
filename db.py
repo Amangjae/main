@@ -8,21 +8,16 @@ from typing import Iterable
 DB_PATH = Path(os.getenv("DB_PATH", "data/lunch_recommender.db"))
 
 
-
 def get_connection() -> sqlite3.Connection:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
-    
-    # ============ SQLite 성능 최적화 ============
-    conn.execute("PRAGMA synchronous = NORMAL")      # 속도 향상
-    conn.execute("PRAGMA cache_size = -64000")       # 64MB 캐시
-    conn.execute("PRAGMA journal_mode = WAL")        # Write-Ahead Logging
-    conn.execute("PRAGMA temp_store = MEMORY")       # 임시 저장소를 메모리에
-    conn.execute("PRAGMA query_only = False")        # 쓰기 가능
-    
+    conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute("PRAGMA journal_mode = WAL")
+    conn.execute("PRAGMA synchronous = NORMAL")
+    conn.execute("PRAGMA temp_store = MEMORY")
+    conn.execute("PRAGMA cache_size = -16000")
     return conn
-
 
 
 def _ensure_column(conn: sqlite3.Connection, column_name: str, column_sql: str) -> None:
@@ -31,13 +26,10 @@ def _ensure_column(conn: sqlite3.Connection, column_name: str, column_sql: str) 
         conn.execute(f"ALTER TABLE restaurants ADD COLUMN {column_sql}")
 
 
-
 def init_db() -> None:
     with get_connection() as conn:
         conn.executescript(
             """
-            PRAGMA foreign_keys = ON;
-
             CREATE TABLE IF NOT EXISTS restaurants (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 external_id TEXT UNIQUE,
@@ -57,7 +49,7 @@ def init_db() -> None:
                 soup_score INTEGER NOT NULL DEFAULT 2,
                 noodle_score INTEGER NOT NULL DEFAULT 2,
                 rice_score INTEGER NOT NULL DEFAULT 2,
-                price_level TEXT NOT NULL DEFAULT 'bo-tong',
+                price_level TEXT NOT NULL DEFAULT '보통',
                 is_active INTEGER NOT NULL DEFAULT 1
             );
 
@@ -65,22 +57,25 @@ def init_db() -> None:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 restaurant_id INTEGER NOT NULL,
                 visited_on TEXT NOT NULL,
-                meal_type TEXT NOT NULL DEFAULT 'lunch',
+                meal_type TEXT NOT NULL DEFAULT '점심',
                 notes TEXT,
                 FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
             );
-            
-            -- ============ 인덱스 추가 (성능 최적화) ============
-            CREATE INDEX IF NOT EXISTS idx_restaurants_is_active 
-                ON restaurants(is_active);
-            CREATE INDEX IF NOT EXISTS idx_restaurants_distance_m 
-                ON restaurants(distance_m);
-            CREATE INDEX IF NOT EXISTS idx_restaurants_category 
-                ON restaurants(category);
-            CREATE INDEX IF NOT EXISTS idx_visit_history_restaurant_id 
-                ON visit_history(restaurant_id);
-            CREATE INDEX IF NOT EXISTS idx_visit_history_visited_on 
-                ON visit_history(visited_on DESC);
+
+            CREATE INDEX IF NOT EXISTS idx_restaurants_active_distance
+            ON restaurants (is_active, distance_m, name);
+
+            CREATE INDEX IF NOT EXISTS idx_restaurants_kakao_place_id
+            ON restaurants (kakao_place_id);
+
+            CREATE INDEX IF NOT EXISTS idx_restaurants_name_address
+            ON restaurants (name, road_address, address);
+
+            CREATE INDEX IF NOT EXISTS idx_visit_history_restaurant_date
+            ON visit_history (restaurant_id, visited_on DESC);
+
+            CREATE INDEX IF NOT EXISTS idx_visit_history_visited_on
+            ON visit_history (visited_on DESC);
             """
         )
         _ensure_column(conn, "kakao_place_id", "kakao_place_id TEXT")
@@ -91,41 +86,38 @@ def init_db() -> None:
         _ensure_column(conn, "source", "source TEXT NOT NULL DEFAULT 'sample'")
 
 
-
 def clear_all() -> None:
     with get_connection() as conn:
         conn.execute("DELETE FROM visit_history")
         conn.execute("DELETE FROM restaurants")
 
 
+def _normalize_restaurant(restaurant: dict, default_source: str = "sample") -> dict:
+    return {
+        "external_id": restaurant.get("external_id"),
+        "kakao_place_id": restaurant.get("kakao_place_id"),
+        "name": restaurant["name"],
+        "category": restaurant["category"],
+        "address": restaurant.get("address", ""),
+        "road_address": restaurant.get("road_address", ""),
+        "distance_m": int(restaurant.get("distance_m", 0)),
+        "phone": restaurant.get("phone", ""),
+        "place_url": restaurant.get("place_url", ""),
+        "x": restaurant.get("x", ""),
+        "y": restaurant.get("y", ""),
+        "source": restaurant.get("source", default_source),
+        "indoor_score": int(restaurant.get("indoor_score", 4)),
+        "spicy_score": int(restaurant.get("spicy_score", 2)),
+        "soup_score": int(restaurant.get("soup_score", 2)),
+        "noodle_score": int(restaurant.get("noodle_score", 2)),
+        "rice_score": int(restaurant.get("rice_score", 2)),
+        "price_level": restaurant.get("price_level", "보통"),
+        "is_active": int(restaurant.get("is_active", 1)),
+    }
+
 
 def upsert_restaurants(restaurants: Iterable[dict]) -> None:
-    payload = []
-    for restaurant in restaurants:
-        payload.append(
-            {
-                "external_id": restaurant.get("external_id"),
-                "kakao_place_id": restaurant.get("kakao_place_id"),
-                "name": restaurant["name"],
-                "category": restaurant["category"],
-                "address": restaurant.get("address", ""),
-                "road_address": restaurant.get("road_address", ""),
-                "distance_m": restaurant["distance_m"],
-                "phone": restaurant.get("phone", ""),
-                "place_url": restaurant.get("place_url", ""),
-                "x": restaurant.get("x", ""),
-                "y": restaurant.get("y", ""),
-                "source": restaurant.get("source", "sample"),
-                "indoor_score": restaurant.get("indoor_score", 4),
-                "spicy_score": restaurant.get("spicy_score", 2),
-                "soup_score": restaurant.get("soup_score", 2),
-                "noodle_score": restaurant.get("noodle_score", 2),
-                "rice_score": restaurant.get("rice_score", 2),
-                "price_level": restaurant.get("price_level", "\ubcf4\ud1b5"),
-                "is_active": restaurant.get("is_active", 1),
-            }
-        )
-
+    payload = [_normalize_restaurant(restaurant) for restaurant in restaurants]
     if not payload:
         return
 
@@ -168,81 +160,70 @@ def upsert_restaurants(restaurants: Iterable[dict]) -> None:
         )
 
 
-
-def insert_restaurant(restaurant: dict) -> str:
-    normalized_address = restaurant.get("road_address") or restaurant.get("address") or ""
+def save_kakao_restaurants(restaurants: Iterable[dict]) -> dict[str, int]:
+    payload = [_normalize_restaurant(restaurant, default_source="kakao") for restaurant in restaurants]
+    if not payload:
+        return {"inserted": 0, "skipped": 0}
 
     with get_connection() as conn:
-        duplicate = conn.execute(
+        existing_rows = conn.execute(
             """
-            SELECT id
+            SELECT kakao_place_id, name, COALESCE(NULLIF(road_address, ''), address, '') AS normalized_address
             FROM restaurants
-            WHERE (kakao_place_id IS NOT NULL AND kakao_place_id = ?)
-               OR (name = ? AND COALESCE(road_address, address, '') = ?)
-            LIMIT 1
-            """,
-            (
-                restaurant.get("kakao_place_id"),
-                restaurant["name"],
-                normalized_address,
-            ),
-        ).fetchone()
-
-        if duplicate:
-            return "duplicate"
-
-        conn.execute(
             """
-            INSERT INTO restaurants (
-                external_id, kakao_place_id, name, category, address, road_address,
-                distance_m, phone, place_url, x, y, source,
-                indoor_score, spicy_score, soup_score, noodle_score,
-                rice_score, price_level, is_active
+        ).fetchall()
+
+        existing_place_ids = {row["kakao_place_id"] for row in existing_rows if row["kakao_place_id"]}
+        existing_name_address = {
+            (row["name"], row["normalized_address"])
+            for row in existing_rows
+            if row["name"] and row["normalized_address"]
+        }
+
+        to_insert = []
+        skipped = 0
+        for restaurant in payload:
+            normalized_address = restaurant["road_address"] or restaurant["address"] or ""
+            duplicate = False
+
+            if restaurant["kakao_place_id"] and restaurant["kakao_place_id"] in existing_place_ids:
+                duplicate = True
+            elif normalized_address and (restaurant["name"], normalized_address) in existing_name_address:
+                duplicate = True
+
+            if duplicate:
+                skipped += 1
+                continue
+
+            to_insert.append(restaurant)
+            if restaurant["kakao_place_id"]:
+                existing_place_ids.add(restaurant["kakao_place_id"])
+            if normalized_address:
+                existing_name_address.add((restaurant["name"], normalized_address))
+
+        if to_insert:
+            conn.executemany(
+                """
+                INSERT INTO restaurants (
+                    external_id, kakao_place_id, name, category, address, road_address,
+                    distance_m, phone, place_url, x, y, source,
+                    indoor_score, spicy_score, soup_score, noodle_score,
+                    rice_score, price_level, is_active
+                )
+                VALUES (
+                    :external_id, :kakao_place_id, :name, :category, :address, :road_address,
+                    :distance_m, :phone, :place_url, :x, :y, :source,
+                    :indoor_score, :spicy_score, :soup_score, :noodle_score,
+                    :rice_score, :price_level, :is_active
+                )
+                """,
+                to_insert,
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                restaurant.get("external_id"),
-                restaurant.get("kakao_place_id"),
-                restaurant["name"],
-                restaurant["category"],
-                restaurant.get("address", ""),
-                restaurant.get("road_address", ""),
-                restaurant["distance_m"],
-                restaurant.get("phone", ""),
-                restaurant.get("place_url", ""),
-                restaurant.get("x", ""),
-                restaurant.get("y", ""),
-                restaurant.get("source", "kakao"),
-                restaurant.get("indoor_score", 4),
-                restaurant.get("spicy_score", 2),
-                restaurant.get("soup_score", 2),
-                restaurant.get("noodle_score", 2),
-                restaurant.get("rice_score", 2),
-                restaurant.get("price_level", "\ubcf4\ud1b5"),
-                restaurant.get("is_active", 1),
-            ),
-        )
-    return "inserted"
+
+    return {"inserted": len(to_insert), "skipped": skipped}
 
 
-
-def save_kakao_restaurants(restaurants: Iterable[dict]) -> dict:
-    inserted = 0
-    skipped = 0
-
-    for restaurant in restaurants:
-        result = insert_restaurant(restaurant)
-        if result == "inserted":
-            inserted += 1
-        else:
-            skipped += 1
-
-    return {"inserted": inserted, "skipped": skipped}
-
-
-
-def add_visit(restaurant_id: int, visited_on: str | None = None, meal_type: str = "\uc810\uc2ec", notes: str = "") -> None:
+def add_visit(restaurant_id: int, visited_on: str | None = None, meal_type: str = "점심", notes: str = "") -> None:
     visited_on = visited_on or date.today().isoformat()
     with get_connection() as conn:
         conn.execute(
@@ -252,7 +233,6 @@ def add_visit(restaurant_id: int, visited_on: str | None = None, meal_type: str 
             """,
             (restaurant_id, visited_on, meal_type, notes),
         )
-
 
 
 def list_restaurants() -> list[dict]:
@@ -268,16 +248,13 @@ def list_restaurants() -> list[dict]:
     return [dict(row) for row in rows]
 
 
-
 def get_restaurant_count() -> int:
     with get_connection() as conn:
         row = conn.execute("SELECT COUNT(*) AS count FROM restaurants").fetchone()
     return int(row["count"])
 
 
-
 def get_recent_visits(limit: int = 10) -> list[dict]:
-    """최근 방문 이력 조회 (최적화된 GROUP BY)"""
     with get_connection() as conn:
         rows = conn.execute(
             """
@@ -285,7 +262,11 @@ def get_recent_visits(limit: int = 10) -> list[dict]:
                 vh.visited_on,
                 vh.meal_type,
                 r.name AS restaurant_name,
-                COUNT(*) OVER (PARTITION BY vh.restaurant_id) AS visit_count
+                (
+                    SELECT COUNT(*)
+                    FROM visit_history vh2
+                    WHERE vh2.restaurant_id = vh.restaurant_id
+                ) AS visit_count
             FROM visit_history vh
             JOIN restaurants r ON r.id = vh.restaurant_id
             ORDER BY vh.visited_on DESC, vh.id DESC
@@ -294,7 +275,6 @@ def get_recent_visits(limit: int = 10) -> list[dict]:
             (limit,),
         ).fetchall()
     return [dict(row) for row in rows]
-
 
 
 def get_restaurants_with_history() -> list[dict]:

@@ -1,291 +1,228 @@
-// ============ API 호출 함수 ============
 const API_BASE = '/api';
 
-async function apiCall(endpoint, method = 'GET', data = null) {
-    try {
-        const options = {
-            method,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        };
+async function apiCall(endpoint, method = 'GET', payload = null) {
+  const options = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+  };
 
-        if (data && (method === 'POST' || method === 'PUT')) {
-            options.body = JSON.stringify(data);
-        }
+  if (payload && method !== 'GET') {
+    options.body = JSON.stringify(payload);
+  }
 
-        const response = await fetch(`${API_BASE}${endpoint}`, options);
-        
-        if (!response.ok) {
-            throw new Error(`API Error: ${response.status}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error(`API Call Failed: ${endpoint}`, error);
-        throw error;
-    }
+  const response = await fetch(`${API_BASE}${endpoint}`, options);
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || `API 요청 실패 (${response.status})`);
+  }
+  return data;
 }
 
-// ============ 데이터 로드 함수 ============
+function setStatus(type, message) {
+  const node = document.getElementById('status-message');
+  node.className = `status-message ${type}`;
+  node.textContent = message;
+}
+
+function clearStatusLater() {
+  window.clearTimeout(window.__statusTimer);
+  window.__statusTimer = window.setTimeout(() => {
+    const node = document.getElementById('status-message');
+    node.className = 'status-message';
+    node.textContent = '';
+  }, 3000);
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
 async function loadConfig() {
-    try {
-        const config = await apiCall('/config');
-        const configInfo = document.getElementById('config-info');
-        configInfo.textContent = `기준 주소: ${config.base_address} | 반경 ${config.search_radius_meters}m 식당 대상`;
-        
-        // Kakao API 버튼 활성화/비활성화
-        const kakaoBtn = document.getElementById('kakao-btn');
-        if (!config.has_kakao_api) {
-            kakaoBtn.disabled = true;
-            kakaoBtn.title = 'KAKAO_REST_API_KEY가 설정되지 않았습니다.';
-        }
-    } catch (error) {
-        console.error('Failed to load config:', error);
-    }
+  const config = await apiCall('/config');
+  document.getElementById('config-info').textContent =
+    `기준 주소: ${config.base_address} | 반경 ${config.search_radius_meters}m`;
+
+  const kakaoBtn = document.getElementById('kakao-btn');
+  kakaoBtn.disabled = !config.has_kakao_api;
+  if (!config.has_kakao_api) {
+    kakaoBtn.title = 'KAKAO_REST_API_KEY가 없어 비활성화되었습니다.';
+  }
 }
 
 async function loadWeather() {
-    try {
-        const data = await apiCall('/weather');
-        const weatherContent = document.getElementById('weather-content');
-        
-        const iconMap = {
-            'rainy': '☔',
-            'clear': '🌤️',
-            'hot': '☀️',
-            'cold': '❄️',
-            'unknown': '🌥️',
-        };
+  const data = await apiCall('/weather');
+  const iconMap = {
+    rainy: '🌧️',
+    clear: '🌤️',
+    hot: '☀️',
+    cold: '🥶',
+    unknown: '🌥️',
+  };
 
-        const icon = iconMap[data.category] || '🌥️';
-        const html = `
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <span class="weather-icon">${icon}</span>
-                <div>
-                    <h3 style="margin: 0;">오늘 점심 날씨: ${data.summary}</h3>
-                    <p style="margin: 5px 0;">기온: ${data.temperature_c}°C</p>
-                    <p style="margin: 5px 0;">추천 포인트: ${data.note}</p>
-                </div>
-            </div>
-        `;
-        weatherContent.innerHTML = html;
-    } catch (error) {
-        console.error('Failed to load weather:', error);
-        document.getElementById('weather-content').innerHTML = 
-            '<p style="color: red;">날씨 정보를 가져올 수 없습니다.</p>';
-    }
+  document.getElementById('weather-content').innerHTML = `
+    <div class="weather-row">
+      <div class="weather-icon">${iconMap[data.category] || '🌥️'}</div>
+      <div>
+        <strong>오늘 점심 날씨: ${escapeHtml(data.summary)}</strong>
+        <p>기온 ${escapeHtml(data.temperature_c)}°C</p>
+        <p>${escapeHtml(data.note)}</p>
+      </div>
+    </div>
+  `;
 }
 
 async function loadRecommendations() {
-    try {
-        const data = await apiCall('/recommendations');
-        const container = document.getElementById('recommendations');
+  const data = await apiCall('/recommendations');
+  const list = data.recommendations || [];
+  const node = document.getElementById('recommendations');
 
-        if (!data.recommendations || data.recommendations.length === 0) {
-            container.innerHTML = '<p class="loading">추천할 식당이 없습니다. 초기 데이터를 준비해주세요.</p>';
-            return;
-        }
+  if (!list.length) {
+    node.innerHTML = '<p class="loading">추천할 식당이 없습니다.</p>';
+    return;
+  }
 
-        const html = data.recommendations.map(item => `
-            <div class="restaurant-card">
-                <h4>${item.name}</h4>
-                <div class="restaurant-info">
-                    <p><strong>카테고리:</strong> ${item.category}</p>
-                    <p><strong>거리:</strong> 약 ${item.distance_m}m</p>
-                    <p><strong>추천 유형:</strong> ${item.recommendation_type}</p>
-                    <p><span class="score">점수: ${item.score}</span></p>
-                    <p><strong>예상 예산:</strong> ${item.price_level}</p>
-                </div>
-                <div class="reason">💡 ${item.reason}</div>
-                <button class="btn btn-visit" onclick="recordVisit(${item.id}, '${item.name}')">
-                    ✓ 방문 기록 추가
-                </button>
-            </div>
-        `).join('');
-
-        container.innerHTML = html;
-    } catch (error) {
-        console.error('Failed to load recommendations:', error);
-        document.getElementById('recommendations').innerHTML =
-            '<p style="color: red;">추천 식당을 가져올 수 없습니다.</p>';
-    }
+  node.innerHTML = list.map((item) => `
+    <article class="card restaurant-card">
+      <div class="pill">${escapeHtml(item.recommendation_type)}</div>
+      <h3>${escapeHtml(item.name)}</h3>
+      <dl class="meta-grid">
+        <div><dt>카테고리</dt><dd>${escapeHtml(item.category)}</dd></div>
+        <div><dt>거리</dt><dd>${escapeHtml(item.distance_m)}m</dd></div>
+        <div><dt>점수</dt><dd>${escapeHtml(item.score)}</dd></div>
+        <div><dt>예산</dt><dd>${escapeHtml(item.price_level)}</dd></div>
+      </dl>
+      <p class="reason">${escapeHtml(item.reason)}</p>
+      <button class="secondary-button" onclick="recordVisit(${item.id}, '${escapeHtml(item.name)}')">방문 기록 추가</button>
+    </article>
+  `).join('');
 }
 
 async function loadVisits() {
-    try {
-        const data = await apiCall('/visits');
-        const container = document.getElementById('visits');
+  const data = await apiCall('/visits');
+  const list = data.visits || [];
+  const node = document.getElementById('visits');
 
-        if (!data.visits || data.visits.length === 0) {
-            container.innerHTML = '<p class="loading">아직 방문 이력이 없습니다.</p>';
-            return;
-        }
+  if (!list.length) {
+    node.innerHTML = '<p class="loading">아직 방문 이력이 없습니다.</p>';
+    return;
+  }
 
-        const html = data.visits.map(visit => `
-            <div class="visit-item">
-                <strong>${visit.restaurant_name}</strong><br>
-                <small>${visit.visited_on} | ${visit.meal_type} | 누적 ${visit.visit_count}회 방문</small>
-            </div>
-        `).join('');
-
-        container.innerHTML = html;
-    } catch (error) {
-        console.error('Failed to load visits:', error);
-        document.getElementById('visits').innerHTML =
-            '<p style="color: red;">방문 이력을 가져올 수 없습니다.</p>';
-    }
+  node.innerHTML = list.map((visit) => `
+    <div class="list-item">
+      <strong>${escapeHtml(visit.restaurant_name)}</strong>
+      <span>${escapeHtml(visit.visited_on)} · ${escapeHtml(visit.meal_type)} · 누적 ${escapeHtml(visit.visit_count)}회</span>
+    </div>
+  `).join('');
 }
 
 async function loadRestaurants() {
-    try {
-        const data = await apiCall('/restaurants');
-        const container = document.getElementById('restaurants');
+  const data = await apiCall('/restaurants');
+  const list = data.restaurants || [];
+  const node = document.getElementById('restaurants');
 
-        if (!data.restaurants || data.restaurants.length === 0) {
-            container.innerHTML = '<p class="loading">등록된 식당이 없습니다.</p>';
-            return;
-        }
+  if (!list.length) {
+    node.innerHTML = '<p class="loading">등록된 식당이 없습니다.</p>';
+    return;
+  }
 
-        const html = `
-            <p><strong>총 ${data.count}곳</strong></p>
-            ${data.restaurants.map(restaurant => {
-                const address = restaurant.road_address || restaurant.address || '-';
-                const source = restaurant.source || 'sample';
-                return `
-                    <div class="restaurant-item">
-                        <strong>${restaurant.name}</strong>
-                        <small>${restaurant.category} | ${restaurant.distance_m}m</small>
-                        <small>${address}</small>
-                        <small style="color: #999;">source=${source}</small>
-                        ${restaurant.place_url ? `<small><a href="${restaurant.place_url}" target="_blank">상세보기</a></small>` : ''}
-                    </div>
-                `;
-            }).join('')}
-        `;
-
-        container.innerHTML = html;
-    } catch (error) {
-        console.error('Failed to load restaurants:', error);
-        document.getElementById('restaurants').innerHTML =
-            '<p style="color: red;">식당 목록을 가져올 수 없습니다.</p>';
-    }
+  node.innerHTML = [`<p class="muted">총 ${data.count}곳</p>`].concat(
+    list.map((restaurant) => {
+      const address = restaurant.road_address || restaurant.address || '-';
+      const link = restaurant.place_url
+        ? `<a href="${escapeHtml(restaurant.place_url)}" target="_blank" rel="noreferrer">상세 보기</a>`
+        : '';
+      return `
+        <div class="list-item">
+          <strong>${escapeHtml(restaurant.name)}</strong>
+          <span>${escapeHtml(restaurant.category)} · ${escapeHtml(restaurant.distance_m)}m · ${escapeHtml(address)}</span>
+          <span class="source">source=${escapeHtml(restaurant.source || 'sample')} ${link}</span>
+        </div>
+      `;
+    })
+  ).join('');
 }
 
 async function loadAllData() {
-    console.log('Loading all data...');
-    await Promise.all([
-        loadConfig(),
-        loadWeather(),
-        loadRecommendations(),
-        loadVisits(),
-        loadRestaurants(),
-    ]);
+  await Promise.all([loadConfig(), loadWeather(), loadRecommendations(), loadVisits(), loadRestaurants()]);
 }
 
-// ============ 액션 함수 ============
 async function recordVisit(restaurantId, restaurantName) {
-    try {
-        showStatus('saving', `${restaurantName} 방문 기록 중...`);
-        await apiCall(`/visit/${restaurantId}`, 'POST');
-        showStatus('success', `${restaurantName} 방문 이력이 저장되었습니다.`);
-        await loadRecommendations();
-        await loadVisits();
-    } catch (error) {
-        showStatus('error', `방문 기록 저장 실패: ${error.message}`);
-    }
+  try {
+    setStatus('saving', `${restaurantName} 방문 기록을 저장하는 중입니다...`);
+    await apiCall(`/visit/${restaurantId}`, 'POST');
+    setStatus('success', `${restaurantName} 방문 이력을 저장했습니다.`);
+    await Promise.all([loadRecommendations(), loadVisits()]);
+    clearStatusLater();
+  } catch (error) {
+    setStatus('error', error.message);
+  }
 }
 
 async function importFromKakao() {
-    if (confirm('카카오 API로부터 주변 식당을 가져오시겠습니까?')) {
-        try {
-            showStatus('saving', '카카오 API에서 데이터를 가져오는 중...');
-            const result = await apiCall('/import-kakao', 'POST');
-            
-            if (result.status === 'success') {
-                showStatus('success', `새로 추가: ${result.inserted}곳 | 중복: ${result.skipped}곳`);
-                await loadRestaurants();
-            } else {
-                showStatus('error', result.message);
-            }
-        } catch (error) {
-            showStatus('error', `카카오 임포트 실패: ${error.message}`);
-        }
-    }
+  try {
+    setStatus('saving', '카카오 API에서 주변 식당을 가져오는 중입니다...');
+    const result = await apiCall('/import-kakao', 'POST');
+    setStatus('success', `새로 추가 ${result.inserted}곳, 중복 건너뜀 ${result.skipped}곳`);
+    await Promise.all([loadRestaurants(), loadRecommendations()]);
+    clearStatusLater();
+  } catch (error) {
+    setStatus('error', error.message);
+  }
 }
 
 async function resetData() {
-    if (confirm('초기 데이터로 리셋하시겠습니까? (기존 방문 이력이 삭제됩니다)')) {
-        try {
-            showStatus('saving', '데이터를 리셋 중...');
-            const result = await apiCall('/reset-data', 'POST');
-            
-            if (result.status === 'success') {
-                showStatus('success', result.message);
-                await loadAllData();
-            } else {
-                showStatus('error', result.message);
-            }
-        } catch (error) {
-            showStatus('error', `리셋 실패: ${error.message}`);
-        }
-    }
+  try {
+    setStatus('saving', '샘플 데이터를 다시 세팅하는 중입니다...');
+    const result = await apiCall('/reset-data', 'POST');
+    setStatus('success', result.message);
+    await loadAllData();
+    clearStatusLater();
+  } catch (error) {
+    setStatus('error', error.message);
+  }
 }
 
 async function refreshData() {
-    try {
-        showStatus('saving', '데이터를 새로고침 중...');
-        await loadAllData();
-        showStatus('success', '데이터가 새로고침되었습니다.');
-    } catch (error) {
-        showStatus('error', `새로고침 실패: ${error.message}`);
-    }
+  try {
+    setStatus('saving', '데이터를 새로고침하는 중입니다...');
+    await loadAllData();
+    setStatus('success', '데이터를 새로고침했습니다.');
+    clearStatusLater();
+  } catch (error) {
+    setStatus('error', error.message);
+  }
 }
 
 async function clearCache() {
-    try {
-        showStatus('saving', '캐시를 초기화 중...');
-        const result = await apiCall('/clear-cache', 'POST');
-        
-        if (result.status === 'success') {
-            showStatus('success', result.message);
-            await loadAllData();
-        } else {
-            showStatus('error', result.message);
-        }
-    } catch (error) {
-        showStatus('error', `캐시 초기화 실패: ${error.message}`);
-    }
+  try {
+    setStatus('saving', '서버 캐시를 비우는 중입니다...');
+    const result = await apiCall('/clear-cache', 'POST');
+    setStatus('success', result.message);
+    await loadAllData();
+    clearStatusLater();
+  } catch (error) {
+    setStatus('error', error.message);
+  }
 }
 
-// ============ UI 함수 ============
-function showStatus(type, message) {
-    const statusElement = document.getElementById('status-message');
-    statusElement.textContent = message;
-    statusElement.className = `status-message ${type}`;
-    
-    if (type !== 'saving') {
-        setTimeout(() => {
-            statusElement.textContent = '';
-            statusElement.className = 'status-message';
-        }, 3000);
-    }
+function toggleRestaurants() {
+  document.getElementById('restaurants-wrapper').classList.toggle('collapsed');
 }
 
-function toggleExpander(button) {
-    button.classList.toggle('active');
-    const content = button.nextElementSibling;
-    content.classList.toggle('active');
-}
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    await loadAllData();
+  } catch (error) {
+    setStatus('error', error.message);
+  }
 
-// ============ 초기화 ============
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Page loaded, initializing...');
-    loadAllData();
-    
-    // 5분마다 데이터 새로고침
-    setInterval(() => {
-        console.log('Auto-refreshing data...');
-        loadAllData();
-    }, 5 * 60 * 1000);
+  window.setInterval(() => {
+    loadRecommendations().catch(() => {});
+    loadVisits().catch(() => {});
+  }, 5 * 60 * 1000);
 });
