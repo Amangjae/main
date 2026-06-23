@@ -20,10 +20,10 @@ def get_connection() -> sqlite3.Connection:
     return conn
 
 
-def _ensure_column(conn: sqlite3.Connection, column_name: str, column_sql: str) -> None:
-    columns = {row["name"] for row in conn.execute("PRAGMA table_info(restaurants)").fetchall()}
+def _ensure_column(conn: sqlite3.Connection, table_name: str, column_name: str, column_sql: str) -> None:
+    columns = {row["name"] for row in conn.execute(f"PRAGMA table_info({table_name})").fetchall()}
     if column_name not in columns:
-        conn.execute(f"ALTER TABLE restaurants ADD COLUMN {column_sql}")
+        conn.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_sql}")
 
 
 def init_db() -> None:
@@ -44,6 +44,8 @@ def init_db() -> None:
                 x TEXT,
                 y TEXT,
                 source TEXT NOT NULL DEFAULT 'sample',
+                main_menu TEXT,
+                estimated_calories INTEGER,
                 indoor_score INTEGER NOT NULL DEFAULT 3,
                 spicy_score INTEGER NOT NULL DEFAULT 2,
                 soup_score INTEGER NOT NULL DEFAULT 2,
@@ -58,8 +60,14 @@ def init_db() -> None:
                 restaurant_id INTEGER NOT NULL,
                 visited_on TEXT NOT NULL,
                 meal_type TEXT NOT NULL DEFAULT '점심',
+                visit_count INTEGER NOT NULL DEFAULT 1,
                 notes TEXT,
                 FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS sync_state (
+                sync_key TEXT PRIMARY KEY,
+                last_synced_at TEXT
             );
 
             CREATE INDEX IF NOT EXISTS idx_restaurants_active_distance
@@ -78,12 +86,16 @@ def init_db() -> None:
             ON visit_history (visited_on DESC);
             """
         )
-        _ensure_column(conn, "kakao_place_id", "kakao_place_id TEXT")
-        _ensure_column(conn, "road_address", "road_address TEXT")
-        _ensure_column(conn, "place_url", "place_url TEXT")
-        _ensure_column(conn, "x", "x TEXT")
-        _ensure_column(conn, "y", "y TEXT")
-        _ensure_column(conn, "source", "source TEXT NOT NULL DEFAULT 'sample'")
+
+        _ensure_column(conn, "restaurants", "kakao_place_id", "kakao_place_id TEXT")
+        _ensure_column(conn, "restaurants", "road_address", "road_address TEXT")
+        _ensure_column(conn, "restaurants", "place_url", "place_url TEXT")
+        _ensure_column(conn, "restaurants", "x", "x TEXT")
+        _ensure_column(conn, "restaurants", "y", "y TEXT")
+        _ensure_column(conn, "restaurants", "source", "source TEXT NOT NULL DEFAULT 'sample'")
+        _ensure_column(conn, "restaurants", "main_menu", "main_menu TEXT")
+        _ensure_column(conn, "restaurants", "estimated_calories", "estimated_calories INTEGER")
+        _ensure_column(conn, "visit_history", "visit_count", "visit_count INTEGER NOT NULL DEFAULT 1")
 
 
 def clear_all() -> None:
@@ -106,6 +118,8 @@ def _normalize_restaurant(restaurant: dict, default_source: str = "sample") -> d
         "x": restaurant.get("x", ""),
         "y": restaurant.get("y", ""),
         "source": restaurant.get("source", default_source),
+        "main_menu": restaurant.get("main_menu", ""),
+        "estimated_calories": restaurant.get("estimated_calories"),
         "indoor_score": int(restaurant.get("indoor_score", 4)),
         "spicy_score": int(restaurant.get("spicy_score", 2)),
         "soup_score": int(restaurant.get("soup_score", 2)),
@@ -126,13 +140,13 @@ def upsert_restaurants(restaurants: Iterable[dict]) -> None:
             """
             INSERT INTO restaurants (
                 external_id, kakao_place_id, name, category, address, road_address,
-                distance_m, phone, place_url, x, y, source,
+                distance_m, phone, place_url, x, y, source, main_menu, estimated_calories,
                 indoor_score, spicy_score, soup_score, noodle_score,
                 rice_score, price_level, is_active
             )
             VALUES (
                 :external_id, :kakao_place_id, :name, :category, :address, :road_address,
-                :distance_m, :phone, :place_url, :x, :y, :source,
+                :distance_m, :phone, :place_url, :x, :y, :source, :main_menu, :estimated_calories,
                 :indoor_score, :spicy_score, :soup_score, :noodle_score,
                 :rice_score, :price_level, :is_active
             )
@@ -148,6 +162,8 @@ def upsert_restaurants(restaurants: Iterable[dict]) -> None:
                 x=excluded.x,
                 y=excluded.y,
                 source=excluded.source,
+                main_menu=excluded.main_menu,
+                estimated_calories=excluded.estimated_calories,
                 indoor_score=excluded.indoor_score,
                 spicy_score=excluded.spicy_score,
                 soup_score=excluded.soup_score,
@@ -168,7 +184,10 @@ def save_kakao_restaurants(restaurants: Iterable[dict]) -> dict[str, int]:
     with get_connection() as conn:
         existing_rows = conn.execute(
             """
-            SELECT kakao_place_id, name, COALESCE(NULLIF(road_address, ''), address, '') AS normalized_address
+            SELECT
+                kakao_place_id,
+                name,
+                COALESCE(NULLIF(road_address, ''), address, '') AS normalized_address
             FROM restaurants
             """
         ).fetchall()
@@ -206,13 +225,13 @@ def save_kakao_restaurants(restaurants: Iterable[dict]) -> dict[str, int]:
                 """
                 INSERT INTO restaurants (
                     external_id, kakao_place_id, name, category, address, road_address,
-                    distance_m, phone, place_url, x, y, source,
+                    distance_m, phone, place_url, x, y, source, main_menu, estimated_calories,
                     indoor_score, spicy_score, soup_score, noodle_score,
                     rice_score, price_level, is_active
                 )
                 VALUES (
                     :external_id, :kakao_place_id, :name, :category, :address, :road_address,
-                    :distance_m, :phone, :place_url, :x, :y, :source,
+                    :distance_m, :phone, :place_url, :x, :y, :source, :main_menu, :estimated_calories,
                     :indoor_score, :spicy_score, :soup_score, :noodle_score,
                     :rice_score, :price_level, :is_active
                 )
@@ -226,12 +245,33 @@ def save_kakao_restaurants(restaurants: Iterable[dict]) -> dict[str, int]:
 def add_visit(restaurant_id: int, visited_on: str | None = None, meal_type: str = "점심", notes: str = "") -> None:
     visited_on = visited_on or date.today().isoformat()
     with get_connection() as conn:
+        existing = conn.execute(
+            """
+            SELECT id, visit_count
+            FROM visit_history
+            WHERE restaurant_id = ? AND visited_on = ? AND meal_type = ?
+            LIMIT 1
+            """,
+            (restaurant_id, visited_on, meal_type),
+        ).fetchone()
+
+        if existing:
+            conn.execute(
+                """
+                UPDATE visit_history
+                SET visit_count = visit_count + 1, notes = ?
+                WHERE id = ?
+                """,
+                (notes, existing["id"]),
+            )
+            return
+
         conn.execute(
             """
-            INSERT INTO visit_history (restaurant_id, visited_on, meal_type, notes)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO visit_history (restaurant_id, visited_on, meal_type, visit_count, notes)
+            VALUES (?, ?, ?, ?, ?)
             """,
-            (restaurant_id, visited_on, meal_type, notes),
+            (restaurant_id, visited_on, meal_type, 1, notes),
         )
 
 
@@ -261,12 +301,13 @@ def get_recent_visits(limit: int = 10) -> list[dict]:
             SELECT
                 vh.visited_on,
                 vh.meal_type,
+                vh.visit_count,
                 r.name AS restaurant_name,
                 (
-                    SELECT COUNT(*)
+                    SELECT COALESCE(SUM(vh2.visit_count), 0)
                     FROM visit_history vh2
                     WHERE vh2.restaurant_id = vh.restaurant_id
-                ) AS visit_count
+                ) AS total_visit_count
             FROM visit_history vh
             JOIN restaurants r ON r.id = vh.restaurant_id
             ORDER BY vh.visited_on DESC, vh.id DESC
@@ -283,7 +324,7 @@ def get_restaurants_with_history() -> list[dict]:
             """
             SELECT
                 r.*,
-                COUNT(vh.id) AS total_visits,
+                COALESCE(SUM(vh.visit_count), 0) AS total_visits,
                 MAX(vh.visited_on) AS last_visited_on
             FROM restaurants r
             LEFT JOIN visit_history vh ON vh.restaurant_id = r.id
@@ -293,3 +334,24 @@ def get_restaurants_with_history() -> list[dict]:
             """
         ).fetchall()
     return [dict(row) for row in rows]
+
+
+def get_last_sync(sync_key: str) -> str | None:
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT last_synced_at FROM sync_state WHERE sync_key = ?",
+            (sync_key,),
+        ).fetchone()
+    return row["last_synced_at"] if row else None
+
+
+def set_last_sync(sync_key: str, synced_at: str) -> None:
+    with get_connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO sync_state (sync_key, last_synced_at)
+            VALUES (?, ?)
+            ON CONFLICT(sync_key) DO UPDATE SET last_synced_at = excluded.last_synced_at
+            """,
+            (sync_key, synced_at),
+        )

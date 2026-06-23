@@ -1,7 +1,9 @@
 import logging
 import os
+from datetime import datetime, time as dt_time
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -11,11 +13,13 @@ from fastapi.staticfiles import StaticFiles
 
 from db import (
     add_visit,
+    get_last_sync,
     get_recent_visits,
     get_restaurant_count,
     init_db,
     list_restaurants,
     save_kakao_restaurants,
+    set_last_sync,
 )
 from kakao_local import KakaoLocalError, fetch_nearby_restaurants, has_kakao_api_key
 from recommender import recommend_lunches
@@ -33,6 +37,8 @@ TITLE = "회사 점심 추천기"
 BASE_ADDRESS = os.getenv("LUNCH_BASE_ADDRESS", "서울특별시 중구 을지로 16")
 SEARCH_RADIUS_METERS = int(os.getenv("SEARCH_RADIUS_METERS", "1500"))
 PORT = int(os.getenv("PORT", "8000"))
+SEOUL_TZ = ZoneInfo("Asia/Seoul")
+DAILY_SYNC_KEY = "kakao_restaurants_daily_sync"
 
 
 class TTLCache:
@@ -76,6 +82,40 @@ def bootstrap() -> None:
     if get_restaurant_count() == 0:
         logger.info("No restaurants found. Seeding sample data.")
         seed_data()
+    ensure_daily_restaurant_sync()
+
+
+def should_sync_today(now: datetime, last_synced_at: str | None) -> bool:
+    if now.time() < dt_time(hour=9, minute=0):
+        return False
+    if not last_synced_at:
+        return True
+    try:
+        last_sync = datetime.fromisoformat(last_synced_at)
+    except ValueError:
+        return True
+    return last_sync.date() < now.date()
+
+
+def ensure_daily_restaurant_sync() -> dict[str, Any]:
+    if not has_kakao_api_key():
+        return {"status": "skipped", "reason": "missing_api_key"}
+
+    now = datetime.now(SEOUL_TZ)
+    last_synced_at = get_last_sync(DAILY_SYNC_KEY)
+    if not should_sync_today(now, last_synced_at):
+        return {"status": "skipped", "reason": "not_due"}
+
+    try:
+        restaurants = fetch_nearby_restaurants(address=BASE_ADDRESS, radius_m=SEARCH_RADIUS_METERS)
+        result = save_kakao_restaurants(restaurants)
+        set_last_sync(DAILY_SYNC_KEY, now.isoformat())
+        cache.clear()
+        logger.info("Daily Kakao sync complete: inserted=%s skipped=%s", result["inserted"], result["skipped"])
+        return {"status": "success", **result}
+    except Exception as exc:
+        logger.exception("Daily Kakao sync failed")
+        return {"status": "error", "message": str(exc)}
 
 
 @app.on_event("startup")
@@ -119,6 +159,7 @@ def weather_api() -> dict[str, Any]:
 
 @app.get("/api/recommendations")
 def recommendations_api() -> dict[str, Any]:
+    ensure_daily_restaurant_sync()
     try:
         data = cache.get_or_set("recommendations", 180, recommend_lunches)
         return {"recommendations": data}
@@ -139,6 +180,7 @@ def visits_api(limit: int = 10) -> dict[str, Any]:
 
 @app.get("/api/restaurants")
 def restaurants_api() -> dict[str, Any]:
+    ensure_daily_restaurant_sync()
     try:
         data = cache.get_or_set("restaurants", 300, list_restaurants)
         return {"restaurants": data, "count": len(data)}
@@ -153,7 +195,7 @@ def record_visit(restaurant_id: int) -> JSONResponse:
         add_visit(restaurant_id)
         cache.clear("visits:")
         cache.clear("recommendations")
-        return JSONResponse({"status": "success", "message": "방문 이력을 저장했습니다."})
+        return JSONResponse({"status": "success", "message": "오늘 방문 횟수를 기록했습니다."})
     except Exception as exc:
         logger.exception("Failed to save visit")
         return JSONResponse({"status": "error", "message": str(exc)}, status_code=500)
@@ -170,6 +212,7 @@ def import_from_kakao() -> JSONResponse:
 
         restaurants = fetch_nearby_restaurants(address=BASE_ADDRESS, radius_m=SEARCH_RADIUS_METERS)
         result = save_kakao_restaurants(restaurants)
+        set_last_sync(DAILY_SYNC_KEY, datetime.now(SEOUL_TZ).isoformat())
         cache.clear()
         return JSONResponse(
             {

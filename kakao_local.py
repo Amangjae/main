@@ -8,6 +8,7 @@ import requests
 DEFAULT_ADDRESS = "서울특별시 중구 을지로 16"
 DEFAULT_RADIUS = int(os.getenv("SEARCH_RADIUS_METERS", "1500"))
 ADDRESS_SEARCH_URL = "https://dapi.kakao.com/v2/local/search/address.json"
+CATEGORY_KEYWORD_URL = "https://dapi.kakao.com/v2/local/search/keyword.json"
 CATEGORY_SEARCH_URL = "https://dapi.kakao.com/v2/local/search/category.json"
 FOOD_CATEGORY_CODE = "FD6"
 REQUEST_TIMEOUT = 10
@@ -19,6 +20,29 @@ _search_cache: dict[str, tuple[float, list[dict[str, Any]]]] = {}
 
 class KakaoLocalError(Exception):
     pass
+
+
+MENU_RULES = [
+    {"match": ["국밥", "순대국", "해장국"], "menu": "국밥", "calories": 700},
+    {"match": ["칼국수"], "menu": "칼국수", "calories": 600},
+    {"match": ["짬뽕"], "menu": "짬뽕", "calories": 800},
+    {"match": ["파스타"], "menu": "크림 파스타", "calories": 850},
+    {"match": ["돈까스"], "menu": "돈까스", "calories": 900},
+    {"match": ["제육"], "menu": "제육볶음", "calories": 820},
+    {"match": ["비빔밥"], "menu": "비빔밥", "calories": 650},
+    {"match": ["샐러드"], "menu": "닭가슴살 샐러드", "calories": 350},
+    {"match": ["초밥", "스시"], "menu": "모둠초밥", "calories": 520},
+    {"match": ["쌀국수"], "menu": "소고기 쌀국수", "calories": 480},
+]
+
+CATEGORY_DEFAULTS = [
+    {"match": ["한식"], "menu": "백반", "calories": 700},
+    {"match": ["중식"], "menu": "짜장면", "calories": 790},
+    {"match": ["일식"], "menu": "돈부리", "calories": 720},
+    {"match": ["양식"], "menu": "파스타", "calories": 820},
+    {"match": ["면요리"], "menu": "잔치국수", "calories": 520},
+    {"match": ["샐러드"], "menu": "샐러드볼", "calories": 320},
+]
 
 
 def has_kakao_api_key() -> bool:
@@ -47,177 +71,58 @@ def _cache_set(cache: dict, key: str, value) -> None:
     cache[key] = (time.time(), value)
 
 
+def infer_menu_and_calories(name: str, category: str) -> tuple[str, int]:
+    combined = f"{name} {category}"
+    for rule in MENU_RULES:
+        if any(keyword in combined for keyword in rule["match"]):
+            return rule["menu"], rule["calories"]
+    for rule in CATEGORY_DEFAULTS:
+        if any(keyword in category for keyword in rule["match"]):
+            return rule["menu"], rule["calories"]
+    return "대표 메뉴 추정 불가", 0
+
+
 def _sample_restaurants() -> list[dict[str, Any]]:
-    return [
-        {
-            "external_id": "sample-1",
-            "kakao_place_id": None,
-            "name": "을지로국밥",
-            "category": "한식",
-            "address": "서울 중구 을지로 일대",
-            "road_address": "서울 중구 을지로 일대",
-            "distance_m": 250,
-            "phone": "",
-            "place_url": "",
-            "x": "",
-            "y": "",
-            "source": "sample",
-            "indoor_score": 5,
-            "spicy_score": 2,
-            "soup_score": 5,
-            "noodle_score": 1,
-            "rice_score": 4,
-            "price_level": "보통",
-            "is_active": 1,
-        },
-        {
-            "external_id": "sample-2",
-            "kakao_place_id": None,
-            "name": "명동칼국수",
-            "category": "면요리",
-            "address": "서울 중구 명동 일대",
-            "road_address": "서울 중구 명동 일대",
-            "distance_m": 780,
-            "phone": "",
-            "place_url": "",
-            "x": "",
-            "y": "",
-            "source": "sample",
-            "indoor_score": 4,
-            "spicy_score": 1,
-            "soup_score": 4,
-            "noodle_score": 5,
-            "rice_score": 1,
-            "price_level": "보통",
-            "is_active": 1,
-        },
-        {
-            "external_id": "sample-3",
-            "kakao_place_id": None,
-            "name": "충무로돈까스",
-            "category": "일식",
-            "address": "서울 중구 충무로 일대",
-            "road_address": "서울 중구 충무로 일대",
-            "distance_m": 920,
-            "phone": "",
-            "place_url": "",
-            "x": "",
-            "y": "",
-            "source": "sample",
-            "indoor_score": 4,
-            "spicy_score": 1,
-            "soup_score": 1,
-            "noodle_score": 1,
-            "rice_score": 3,
-            "price_level": "보통",
-            "is_active": 1,
-        },
-        {
-            "external_id": "sample-4",
-            "kakao_place_id": None,
-            "name": "을지로제육식당",
-            "category": "한식",
-            "address": "서울 중구 을지로 일대",
-            "road_address": "서울 중구 을지로 일대",
-            "distance_m": 430,
-            "phone": "",
-            "place_url": "",
-            "x": "",
-            "y": "",
-            "source": "sample",
-            "indoor_score": 4,
-            "spicy_score": 5,
-            "soup_score": 2,
-            "noodle_score": 1,
-            "rice_score": 5,
-            "price_level": "보통",
-            "is_active": 1,
-        },
-        {
-            "external_id": "sample-5",
-            "kakao_place_id": None,
-            "name": "시청샐러드랩",
-            "category": "샐러드",
-            "address": "서울 중구 시청 일대",
-            "road_address": "서울 중구 시청 일대",
-            "distance_m": 1380,
-            "phone": "",
-            "place_url": "",
-            "x": "",
-            "y": "",
-            "source": "sample",
-            "indoor_score": 4,
-            "spicy_score": 1,
-            "soup_score": 1,
-            "noodle_score": 1,
-            "rice_score": 1,
-            "price_level": "약간높음",
-            "is_active": 1,
-        },
-        {
-            "external_id": "sample-6",
-            "kakao_place_id": None,
-            "name": "을지로짬뽕",
-            "category": "중식",
-            "address": "서울 중구 을지로 일대",
-            "road_address": "서울 중구 을지로 일대",
-            "distance_m": 640,
-            "phone": "",
-            "place_url": "",
-            "x": "",
-            "y": "",
-            "source": "sample",
-            "indoor_score": 5,
-            "spicy_score": 4,
-            "soup_score": 4,
-            "noodle_score": 4,
-            "rice_score": 2,
-            "price_level": "보통",
-            "is_active": 1,
-        },
-        {
-            "external_id": "sample-7",
-            "kakao_place_id": None,
-            "name": "회현비빔밥",
-            "category": "한식",
-            "address": "서울 중구 회현 일대",
-            "road_address": "서울 중구 회현 일대",
-            "distance_m": 1490,
-            "phone": "",
-            "place_url": "",
-            "x": "",
-            "y": "",
-            "source": "sample",
-            "indoor_score": 3,
-            "spicy_score": 2,
-            "soup_score": 1,
-            "noodle_score": 1,
-            "rice_score": 5,
-            "price_level": "보통",
-            "is_active": 1,
-        },
-        {
-            "external_id": "sample-8",
-            "kakao_place_id": None,
-            "name": "을지로파스타",
-            "category": "양식",
-            "address": "서울 중구 을지로 일대",
-            "road_address": "서울 중구 을지로 일대",
-            "distance_m": 580,
-            "phone": "",
-            "place_url": "",
-            "x": "",
-            "y": "",
-            "source": "sample",
-            "indoor_score": 5,
-            "spicy_score": 1,
-            "soup_score": 1,
-            "noodle_score": 3,
-            "rice_score": 1,
-            "price_level": "약간높음",
-            "is_active": 1,
-        },
+    samples = [
+        ("sample-1", "을지로국밥", "한식", "서울 중구 을지로 일대", 250),
+        ("sample-2", "명동칼국수", "면요리", "서울 중구 명동 일대", 780),
+        ("sample-3", "충무로돈까스", "일식", "서울 중구 충무로 일대", 920),
+        ("sample-4", "을지로제육식당", "한식", "서울 중구 을지로 일대", 430),
+        ("sample-5", "시청샐러드랩", "샐러드", "서울 중구 시청 일대", 1380),
+        ("sample-6", "을지로짬뽕", "중식", "서울 중구 을지로 일대", 640),
+        ("sample-7", "회현비빔밥", "한식", "서울 중구 회현 일대", 1490),
+        ("sample-8", "을지로파스타", "양식", "서울 중구 을지로 일대", 580),
     ]
+
+    rows = []
+    for external_id, name, category, address, distance_m in samples:
+        main_menu, estimated_calories = infer_menu_and_calories(name, category)
+        rows.append(
+            {
+                "external_id": external_id,
+                "kakao_place_id": None,
+                "name": name,
+                "category": category,
+                "address": address,
+                "road_address": address,
+                "distance_m": distance_m,
+                "phone": "",
+                "place_url": "",
+                "x": "",
+                "y": "",
+                "source": "sample",
+                "main_menu": main_menu,
+                "estimated_calories": estimated_calories,
+                "indoor_score": 4,
+                "spicy_score": 2,
+                "soup_score": 2,
+                "noodle_score": 2,
+                "rice_score": 2,
+                "price_level": "보통",
+                "is_active": 1,
+            }
+        )
+    return rows
 
 
 def search_nearby_restaurants(address: str | None = None, radius_m: int = DEFAULT_RADIUS, keyword: str = "맛집") -> list[dict[str, Any]]:
@@ -242,10 +147,25 @@ def geocode_address(address: str) -> dict[str, str]:
 
     documents = response.json().get("documents", [])
     if not documents:
+        try:
+            fallback_response = _session.get(
+                CATEGORY_KEYWORD_URL,
+                headers=_api_headers(),
+                params={"query": address, "size": 1},
+                timeout=REQUEST_TIMEOUT,
+            )
+            fallback_response.raise_for_status()
+            documents = fallback_response.json().get("documents", [])
+        except requests.RequestException as exc:
+            raise KakaoLocalError(f"주소 키워드 검색 API 호출에 실패했습니다: {exc}") from exc
+
+    if not documents:
         raise KakaoLocalError("기준 주소를 좌표로 변환하지 못했습니다.")
 
     result = {
-        "address_name": documents[0].get("address_name", address),
+        "address_name": documents[0].get("address_name")
+        or documents[0].get("road_address_name")
+        or address,
         "x": documents[0].get("x", ""),
         "y": documents[0].get("y", ""),
     }
@@ -290,12 +210,15 @@ def search_food_places_by_category(x: str, y: str, radius_m: int) -> list[dict[s
             if not place_id or place_id in seen_ids:
                 continue
             seen_ids.add(place_id)
+            category = item.get("category_name") or item.get("category_group_name") or "음식점"
+            name = item.get("place_name", "")
+            main_menu, estimated_calories = infer_menu_and_calories(name, category)
             restaurants.append(
                 {
                     "external_id": f"kakao-{place_id}",
                     "kakao_place_id": place_id,
-                    "name": item.get("place_name", ""),
-                    "category": item.get("category_name") or item.get("category_group_name") or "음식점",
+                    "name": name,
+                    "category": category,
                     "address": item.get("address_name", ""),
                     "road_address": item.get("road_address_name", ""),
                     "phone": item.get("phone", ""),
@@ -304,6 +227,8 @@ def search_food_places_by_category(x: str, y: str, radius_m: int) -> list[dict[s
                     "y": item.get("y", ""),
                     "distance_m": int(item.get("distance", 0)),
                     "source": "kakao",
+                    "main_menu": main_menu,
+                    "estimated_calories": estimated_calories,
                     "indoor_score": 4,
                     "spicy_score": 2,
                     "soup_score": 2,

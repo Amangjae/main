@@ -8,66 +8,27 @@ const sampleWeather = {
 };
 
 const sampleVisits = [
-  { restaurant_name: '을지로국밥', visited_on: '2026-06-20', meal_type: '점심', visit_count: 2 },
-  { restaurant_name: '을지로짬뽕', visited_on: '2026-06-18', meal_type: '점심', visit_count: 1 },
-  { restaurant_name: '을지로제육식당', visited_on: '2026-06-16', meal_type: '점심', visit_count: 1 },
+  { restaurant_name: '을지로국밥', visited_on: '2026-06-20', meal_type: '점심', visit_count: 2, total_visit_count: 3 },
+  { restaurant_name: '을지로짬뽕', visited_on: '2026-06-18', meal_type: '점심', visit_count: 1, total_visit_count: 1 },
+  { restaurant_name: '을지로제육식당', visited_on: '2026-06-16', meal_type: '점심', visit_count: 1, total_visit_count: 1 },
 ];
 
 const sampleRestaurants = [
-  { id: 1, name: '을지로국밥', category: '한식', distance_m: 250, address: '서울 중구 을지로 일대', source: 'sample' },
-  { id: 2, name: '을지로제육식당', category: '한식', distance_m: 430, address: '서울 중구 을지로 일대', source: 'sample' },
-  { id: 3, name: '을지로파스타', category: '양식', distance_m: 580, address: '서울 중구 을지로 일대', source: 'sample' },
-  { id: 4, name: '을지로짬뽕', category: '중식', distance_m: 640, address: '서울 중구 을지로 일대', source: 'sample' },
-  { id: 5, name: '명동칼국수', category: '면요리', distance_m: 780, address: '서울 중구 명동 일대', source: 'sample' },
-  { id: 6, name: '충무로돈까스', category: '일식', distance_m: 920, address: '서울 중구 충무로 일대', source: 'sample' },
+  { id: 1, name: '을지로국밥', category: '한식', distance_m: 250, road_address: '서울 중구 을지로 일대', source: 'sample', main_menu: '국밥', estimated_calories: 700 },
+  { id: 2, name: '을지로제육식당', category: '한식', distance_m: 430, road_address: '서울 중구 을지로 일대', source: 'sample', main_menu: '제육볶음', estimated_calories: 820 },
+  { id: 3, name: '을지로파스타', category: '양식', distance_m: 580, road_address: '서울 중구 을지로 일대', source: 'sample', main_menu: '크림 파스타', estimated_calories: 850 },
+  { id: 4, name: '을지로짬뽕', category: '중식', distance_m: 640, road_address: '서울 중구 을지로 일대', source: 'sample', main_menu: '짬뽕', estimated_calories: 800 },
 ];
 
 const sampleRecommendations = [
-  {
-    id: 1,
-    name: '을지로국밥',
-    category: '한식',
-    distance_m: 250,
-    score: 6.4,
-    price_level: '보통',
-    recommendation_type: '재방문 추천',
-    reason: '더운 날씨를 고려했고, 가까우며 익숙한 식당입니다.',
-  },
-  {
-    id: 2,
-    name: '을지로제육식당',
-    category: '한식',
-    distance_m: 430,
-    score: 5.8,
-    price_level: '보통',
-    recommendation_type: '재방문 추천',
-    reason: '든든한 점심 메뉴이고 이동 부담이 적습니다.',
-  },
-  {
-    id: 4,
-    name: '을지로짬뽕',
-    category: '중식',
-    distance_m: 640,
-    score: 5.3,
-    price_level: '보통',
-    recommendation_type: '재방문 추천',
-    reason: '실내 선호와 메뉴 다양성을 함께 반영했습니다.',
-  },
-  {
-    id: 3,
-    name: '을지로파스타',
-    category: '양식',
-    distance_m: 580,
-    score: 4.9,
-    price_level: '약간높음',
-    recommendation_type: '새로운 도전',
-    reason: '아직 방문 이력이 없는 신규 후보입니다.',
-  },
+  { id: 1, name: '을지로국밥', category: '한식', distance_m: 250, score: 6.4, price_level: '보통', recommendation_type: '재방문 추천', reason: '더운 날씨를 고려했고, 가까우며 익숙한 식당입니다.', main_menu: '국밥', estimated_calories: 700 },
+  { id: 2, name: '을지로제육식당', category: '한식', distance_m: 430, score: 5.8, price_level: '보통', recommendation_type: '재방문 추천', reason: '든든한 점심 메뉴이고 이동 부담이 적습니다.', main_menu: '제육볶음', estimated_calories: 820 },
+  { id: 4, name: '을지로짬뽕', category: '중식', distance_m: 640, score: 5.3, price_level: '보통', recommendation_type: '재방문 추천', reason: '실내 선호와 메뉴 다양성을 함께 반영했습니다.', main_menu: '짬뽕', estimated_calories: 800 },
+  { id: 3, name: '을지로파스타', category: '양식', distance_m: 580, score: 4.9, price_level: '약간높음', recommendation_type: '새로운 도전', reason: '아직 방문 이력이 없는 신규 후보입니다.', main_menu: '크림 파스타', estimated_calories: 850 },
 ];
 
 const state = {
   liveMode: Boolean(API_BASE),
-  restaurantsByName: new Map(sampleRestaurants.map((item) => [item.name, item.id])),
 };
 
 async function apiCall(endpoint, method = 'GET', payload = null) {
@@ -116,6 +77,7 @@ function renderWeather(weather) {
 }
 
 function recommendationCard(item, enableVisitButton) {
+  const calories = item.estimated_calories ? `${item.estimated_calories}kcal` : '추정 불가';
   const buttonHtml = enableVisitButton
     ? `<button class="action-button" onclick="recordTodayVisit(${item.id}, '${item.name.replaceAll("'", "\\'")}')">오늘 방문 기록</button>`
     : `<button class="action-button" disabled>API 연결 시 방문 기록 가능</button>`;
@@ -129,6 +91,8 @@ function recommendationCard(item, enableVisitButton) {
         <div><dt>거리</dt><dd>${item.distance_m}m</dd></div>
         <div><dt>점수</dt><dd>${item.score}</dd></div>
         <div><dt>예산</dt><dd>${item.price_level}</dd></div>
+        <div><dt>메인 메뉴</dt><dd>${item.main_menu || '추정 불가'}</dd></div>
+        <div><dt>칼로리</dt><dd>${calories}</dd></div>
       </dl>
       <p class="reason">${item.reason}</p>
       ${buttonHtml}
@@ -148,7 +112,7 @@ function renderVisits(visits) {
       (visit) => `
         <div class="list-item">
           <strong>${visit.restaurant_name}</strong>
-          <span>${visit.visited_on} · ${visit.meal_type} · 누적 ${visit.visit_count}회</span>
+          <span>${visit.visited_on} · ${visit.meal_type} · 당일 ${visit.visit_count}회 · 누적 ${visit.total_visit_count}회</span>
         </div>
       `
     )
@@ -162,6 +126,7 @@ function renderRestaurants(restaurants) {
         <div class="list-item">
           <strong>${restaurant.name}</strong>
           <span>${restaurant.category} · ${restaurant.distance_m}m · ${restaurant.road_address || restaurant.address || '-'}</span>
+          <span>메인 메뉴: ${restaurant.main_menu || '추정 불가'} · ${restaurant.estimated_calories || 0}kcal</span>
           <span>source=${restaurant.source}</span>
         </div>
       `
@@ -177,18 +142,10 @@ async function loadLiveData() {
     apiCall('/api/restaurants'),
   ]);
 
-  const restaurants = restaurantsPayload.restaurants || [];
-  state.restaurantsByName = new Map(restaurants.map((item) => [item.name, item.id]));
-
-  const recommendations = (recommendationsPayload.recommendations || []).map((item) => ({
-    ...item,
-    id: item.id ?? state.restaurantsByName.get(item.name),
-  }));
-
   renderWeather(weather);
-  renderRecommendations(recommendations, true);
+  renderRecommendations(recommendationsPayload.recommendations || [], true);
   renderVisits(visitsPayload.visits || []);
-  renderRestaurants(restaurants);
+  renderRestaurants(restaurantsPayload.restaurants || []);
 }
 
 function loadSampleData() {
@@ -206,7 +163,7 @@ async function recordTodayVisit(restaurantId, restaurantName) {
 
   try {
     await apiCall(`/api/visit/${restaurantId}`, 'POST');
-    alert(`${restaurantName} 오늘 방문 기록이 저장되었습니다.`);
+    alert(`${restaurantName} 오늘 방문 횟수가 기록되었습니다.`);
     await loadLiveData();
   } catch (error) {
     alert(`방문 기록 저장 실패: ${error.message}`);
