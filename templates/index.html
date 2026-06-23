@@ -3,21 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>회사 점심 추천기</title>
+    <title>점심 추천</title>
     <link rel="stylesheet" href="/static/style.css" />
   </head>
   <body>
     <div class="page-shell">
       <header class="hero">
         <div>
-          <p class="eyebrow">Office Lunch Recommender</p>
-          <h1>회사 점심 추천기</h1>
-          <p id="config-info" class="hero-copy">설정을 불러오는 중입니다.</p>
+          <p class="eyebrow">Office Lunch Picker</p>
+          <h1>점심 추천</h1>
+          <p id="config-info" class="hero-copy">기준 주소 정보를 불러오는 중입니다.</p>
         </div>
       </header>
 
       <section class="weather-panel">
-        <div id="weather-content" class="loading">날씨 정보를 불러오는 중입니다.</div>
+        <div id="weather-content" class="loading">실제 날씨 정보를 불러오는 중입니다.</div>
       </section>
 
       <div class="layout">
@@ -33,47 +33,25 @@
           </section>
 
           <section class="panel">
-            <h3>최근 방문 이력</h3>
+            <h3>최근 방문 기록</h3>
             <div id="visits" class="stack-list">
-              <p class="loading">방문 이력을 불러오는 중입니다.</p>
-            </div>
-          </section>
-
-          <section class="panel">
-            <div class="section-heading">
-              <h3>등록된 식당 목록</h3>
-              <button class="ghost-button" onclick="toggleRestaurants(this)">접기/펼치기</button>
-            </div>
-            <div id="restaurants-wrapper">
-              <div id="restaurants" class="stack-list">
-                <p class="loading">식당 목록을 불러오는 중입니다.</p>
-              </div>
+              <p class="loading">방문 기록을 불러오는 중입니다.</p>
             </div>
           </section>
         </main>
 
         <aside class="sidebar panel">
-          <h3>관리</h3>
-          <p class="muted">API 키가 없어도 샘플 데이터 기반으로 동작합니다.</p>
+          <h3>설정</h3>
+          <label class="field-label" for="base-address-input">기준 주소</label>
+          <input id="base-address-input" class="text-input" type="text" placeholder="기준 주소를 입력해 주세요." />
+          <button class="secondary-button" onclick="applyBaseAddress()">기준 주소 적용</button>
 
           <div class="action-group">
-            <button id="kakao-btn" class="primary-button" onclick="importFromKakao()">
-              카카오 API로 주변 식당 가져오기
-            </button>
-            <button class="secondary-button" onclick="resetData()">초기 데이터 다시 세팅</button>
-            <button class="secondary-button" onclick="clearCache()">서버 캐시 비우기</button>
+            <button id="external-api-btn" class="primary-button" onclick="connectExternalApi()">외부 API 연결</button>
+            <button class="ghost-button" onclick="clearCache()">캐시 비우기</button>
           </div>
 
           <div id="status-message" class="status-message"></div>
-
-          <div class="env-box">
-            <h4>환경 변수 예시</h4>
-            <pre><code>KAKAO_REST_API_KEY=...
-WEATHER_API_KEY=...
-LUNCH_BASE_ADDRESS=서울특별시 중구 을지로 16
-SEARCH_RADIUS_METERS=1500
-DB_PATH=data/lunch_recommender.db</code></pre>
-          </div>
         </aside>
       </div>
     </div>

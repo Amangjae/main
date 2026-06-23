@@ -8,7 +8,7 @@ import requests
 DEFAULT_ADDRESS = "서울특별시 중구 을지로 16"
 DEFAULT_RADIUS = int(os.getenv("SEARCH_RADIUS_METERS", "1500"))
 ADDRESS_SEARCH_URL = "https://dapi.kakao.com/v2/local/search/address.json"
-CATEGORY_KEYWORD_URL = "https://dapi.kakao.com/v2/local/search/keyword.json"
+KEYWORD_SEARCH_URL = "https://dapi.kakao.com/v2/local/search/keyword.json"
 CATEGORY_SEARCH_URL = "https://dapi.kakao.com/v2/local/search/category.json"
 FOOD_CATEGORY_CODE = "FD6"
 REQUEST_TIMEOUT = 10
@@ -30,18 +30,17 @@ MENU_RULES = [
     {"match": ["돈까스"], "menu": "돈까스", "calories": 900},
     {"match": ["제육"], "menu": "제육볶음", "calories": 820},
     {"match": ["비빔밥"], "menu": "비빔밥", "calories": 650},
-    {"match": ["샐러드"], "menu": "닭가슴살 샐러드", "calories": 350},
+    {"match": ["샐러드"], "menu": "치킨 샐러드", "calories": 350},
     {"match": ["초밥", "스시"], "menu": "모둠초밥", "calories": 520},
-    {"match": ["쌀국수"], "menu": "소고기 쌀국수", "calories": 480},
 ]
 
 CATEGORY_DEFAULTS = [
     {"match": ["한식"], "menu": "백반", "calories": 700},
     {"match": ["중식"], "menu": "짜장면", "calories": 790},
-    {"match": ["일식"], "menu": "돈부리", "calories": 720},
+    {"match": ["일식"], "menu": "가라아게 정식", "calories": 720},
     {"match": ["양식"], "menu": "파스타", "calories": 820},
     {"match": ["면요리"], "menu": "잔치국수", "calories": 520},
-    {"match": ["샐러드"], "menu": "샐러드볼", "calories": 320},
+    {"match": ["샐러드"], "menu": "샐러드 볼", "calories": 320},
 ]
 
 
@@ -82,6 +81,18 @@ def infer_menu_and_calories(name: str, category: str) -> tuple[str, int]:
     return "대표 메뉴 추정 불가", 0
 
 
+def _extract_dong(document: dict[str, Any], fallback: str) -> str:
+    address = document.get("address") or {}
+    road_address = document.get("road_address") or {}
+    for source in (address, road_address):
+        region_3depth_name = source.get("region_3depth_name")
+        if region_3depth_name:
+            return region_3depth_name
+    address_name = document.get("address_name") or document.get("road_address_name") or fallback
+    parts = address_name.split()
+    return parts[2] if len(parts) >= 3 else address_name
+
+
 def _sample_restaurants() -> list[dict[str, Any]]:
     samples = [
         ("sample-1", "을지로국밥", "한식", "서울 중구 을지로 일대", 250),
@@ -89,11 +100,10 @@ def _sample_restaurants() -> list[dict[str, Any]]:
         ("sample-3", "충무로돈까스", "일식", "서울 중구 충무로 일대", 920),
         ("sample-4", "을지로제육식당", "한식", "서울 중구 을지로 일대", 430),
         ("sample-5", "시청샐러드랩", "샐러드", "서울 중구 시청 일대", 1380),
-        ("sample-6", "을지로짬뽕", "중식", "서울 중구 을지로 일대", 640),
-        ("sample-7", "회현비빔밥", "한식", "서울 중구 회현 일대", 1490),
-        ("sample-8", "을지로파스타", "양식", "서울 중구 을지로 일대", 580),
+        ("sample-6", "을지로중화반점", "중식", "서울 중구 을지로 일대", 640),
+        ("sample-7", "동대문비빔밥", "한식", "서울 중구 동대문 일대", 1490),
+        ("sample-8", "을지로파스타랩", "양식", "서울 중구 을지로 일대", 580),
     ]
-
     rows = []
     for external_id, name, category, address, distance_m in samples:
         main_menu, estimated_calories = infer_menu_and_calories(name, category)
@@ -142,32 +152,29 @@ def geocode_address(address: str) -> dict[str, str]:
             timeout=REQUEST_TIMEOUT,
         )
         response.raise_for_status()
-    except requests.RequestException as exc:
-        raise KakaoLocalError(f"주소 변환 API 호출에 실패했습니다: {exc}") from exc
+        documents = response.json().get("documents", [])
 
-    documents = response.json().get("documents", [])
-    if not documents:
-        try:
-            fallback_response = _session.get(
-                CATEGORY_KEYWORD_URL,
+        if not documents:
+            keyword_response = _session.get(
+                KEYWORD_SEARCH_URL,
                 headers=_api_headers(),
                 params={"query": address, "size": 1},
                 timeout=REQUEST_TIMEOUT,
             )
-            fallback_response.raise_for_status()
-            documents = fallback_response.json().get("documents", [])
-        except requests.RequestException as exc:
-            raise KakaoLocalError(f"주소 키워드 검색 API 호출에 실패했습니다: {exc}") from exc
+            keyword_response.raise_for_status()
+            documents = keyword_response.json().get("documents", [])
+    except requests.RequestException as exc:
+        raise KakaoLocalError(f"주소 검색 API 호출에 실패했습니다: {exc}") from exc
 
     if not documents:
         raise KakaoLocalError("기준 주소를 좌표로 변환하지 못했습니다.")
 
+    first = documents[0]
     result = {
-        "address_name": documents[0].get("address_name")
-        or documents[0].get("road_address_name")
-        or address,
-        "x": documents[0].get("x", ""),
-        "y": documents[0].get("y", ""),
+        "address_name": first.get("address_name") or first.get("road_address_name") or address,
+        "dong_name": _extract_dong(first, address),
+        "x": first.get("x", ""),
+        "y": first.get("y", ""),
     }
     _cache_set(_geocode_cache, address, result)
     return result
@@ -202,7 +209,7 @@ def search_food_places_by_category(x: str, y: str, radius_m: int) -> list[dict[s
             )
             response.raise_for_status()
         except requests.RequestException as exc:
-            raise KakaoLocalError(f"음식점 검색 API 호출에 실패했습니다: {exc}") from exc
+            raise KakaoLocalError(f"카테고리 검색 API 호출에 실패했습니다: {exc}") from exc
 
         data = response.json()
         for item in data.get("documents", []):

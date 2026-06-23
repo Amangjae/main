@@ -70,6 +70,11 @@ def init_db() -> None:
                 last_synced_at TEXT
             );
 
+            CREATE TABLE IF NOT EXISTS app_state (
+                state_key TEXT PRIMARY KEY,
+                state_value TEXT
+            );
+
             CREATE INDEX IF NOT EXISTS idx_restaurants_active_distance
             ON restaurants (is_active, distance_m, name);
 
@@ -247,7 +252,7 @@ def add_visit(restaurant_id: int, visited_on: str | None = None, meal_type: str 
     with get_connection() as conn:
         existing = conn.execute(
             """
-            SELECT id, visit_count
+            SELECT id
             FROM visit_history
             WHERE restaurant_id = ? AND visited_on = ? AND meal_type = ?
             LIMIT 1
@@ -292,6 +297,39 @@ def get_restaurant_count() -> int:
     with get_connection() as conn:
         row = conn.execute("SELECT COUNT(*) AS count FROM restaurants").fetchone()
     return int(row["count"])
+
+
+def backfill_restaurant_metadata(infer_menu_and_calories) -> int:
+    with get_connection() as conn:
+        rows = conn.execute(
+            """
+            SELECT id, name, category, main_menu, estimated_calories
+            FROM restaurants
+            WHERE is_active = 1
+            """
+        ).fetchall()
+
+        updates = []
+        for row in rows:
+            needs_menu = not row["main_menu"] or row["main_menu"] == "대표 메뉴 추정 불가"
+            needs_calories = not row["estimated_calories"]
+            if not needs_menu and not needs_calories:
+                continue
+
+            main_menu, estimated_calories = infer_menu_and_calories(row["name"], row["category"])
+            updates.append((main_menu, estimated_calories, row["id"]))
+
+        if updates:
+            conn.executemany(
+                """
+                UPDATE restaurants
+                SET main_menu = ?, estimated_calories = ?
+                WHERE id = ?
+                """,
+                updates,
+            )
+
+    return len(updates)
 
 
 def get_recent_visits(limit: int = 10) -> list[dict]:
@@ -354,4 +392,25 @@ def set_last_sync(sync_key: str, synced_at: str) -> None:
             ON CONFLICT(sync_key) DO UPDATE SET last_synced_at = excluded.last_synced_at
             """,
             (sync_key, synced_at),
+        )
+
+
+def get_app_state(state_key: str) -> str | None:
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT state_value FROM app_state WHERE state_key = ?",
+            (state_key,),
+        ).fetchone()
+    return row["state_value"] if row else None
+
+
+def set_app_state(state_key: str, state_value: str) -> None:
+    with get_connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO app_state (state_key, state_value)
+            VALUES (?, ?)
+            ON CONFLICT(state_key) DO UPDATE SET state_value = excluded.state_value
+            """,
+            (state_key, state_value),
         )
