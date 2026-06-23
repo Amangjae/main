@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>회사 점심 추천기</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">GitHub Pages Demo</p>
+          <h1>회사 점심 추천기</h1>
+          <p class="hero-copy">
+            기준 주소: 서울특별시 중구 을지로 16 | 반경 1.5km | GitHub Pages 정적 데모
+          </p>
+        </div>
+      </header>
+
+      <section class="weather-panel">
+        <div id="weather-content"></div>
+      </section>
+
+      <div class="layout">
+        <main class="main-content">
+          <section>
+            <div class="section-heading">
+              <h2>오늘의 추천 4곳</h2>
+            </div>
+            <div id="recommendations" class="recommendation-grid"></div>
+          </section>
+
+          <section class="panel">
+            <h3>최근 방문 이력</h3>
+            <div id="visits" class="stack-list"></div>
+          </section>
+
+          <section class="panel">
+            <h3>등록된 식당 목록</h3>
+            <div id="restaurants" class="stack-list"></div>
+          </section>
+        </main>
+
+        <aside class="sidebar panel">
+          <h3>안내</h3>
+          <p class="muted">
+            이 페이지는 GitHub Pages에서 바로 보이도록 만든 정적 데모입니다.
+          </p>
+          <ul class="info-list">
+            <li>현재 화면은 샘플 데이터 기반입니다.</li>
+            <li>FastAPI, SQLite, Kakao API 호출은 Pages 단독으로는 실행되지 않습니다.</li>
+            <li>실시간 데이터와 저장 기능은 별도 Python 서버 배포가 필요합니다.</li>
+          </ul>
+
+          <div class="env-box">
+            <h4>저장소 Pages 설정</h4>
+            <pre><code>Branch: master
+Folder: /docs</code></pre>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

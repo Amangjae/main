@@ -19,6 +19,30 @@ python app.py
 
 브라우저에서 `http://localhost:8000` 으로 접속합니다.
 
+## GitHub Pages
+
+`GitHub Pages` 에서 바로 보이도록 `docs/` 정적 데모 사이트도 추가했습니다.
+
+설정 방법:
+
+1. GitHub 저장소 `Settings`
+2. `Pages`
+3. `Build and deployment` 에서
+   - `Source`: `Deploy from a branch`
+   - `Branch`: `master`
+   - `Folder`: `/docs`
+4. 저장
+
+배포가 끝나면 아래 주소 형태로 열립니다.
+
+- `https://amangjae.github.io/main/`
+
+주의:
+
+- Pages 버전은 정적 데모입니다.
+- FastAPI, SQLite, Kakao API 실시간 호출은 GitHub Pages 단독으로는 실행되지 않습니다.
+- 실제 서버 기능까지 공개하려면 Render, Railway, EC2 같은 Python 호스팅이 별도로 필요합니다.
+
 ## Render 배포
 
 이 저장소에는 Render 배포용 [`render.yaml`](</G:/내 드라이브/VScode/lunck_recommender/render.yaml>) 과 [`Procfile`](</G:/내 드라이브/VScode/lunck_recommender/Procfile>) 이 포함되어 있습니다.
