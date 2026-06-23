@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: lunch-recommender
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: LUNCH_BASE_ADDRESS
+        value: 서울특별시 중구 을지로 16
+      - key: SEARCH_RADIUS_METERS
+        value: 1500
+      - key: DB_PATH
+        value: data/lunch_recommender.db

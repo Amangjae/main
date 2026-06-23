@@ -19,6 +19,28 @@ python app.py
 
 브라우저에서 `http://localhost:8000` 으로 접속합니다.
 
+## Render 배포
+
+이 저장소에는 Render 배포용 [`render.yaml`](</G:/내 드라이브/VScode/lunck_recommender/render.yaml>) 과 [`Procfile`](</G:/내 드라이브/VScode/lunck_recommender/Procfile>) 이 포함되어 있습니다.
+
+1. Render에서 `New +` → `Blueprint` 또는 `Web Service`를 선택합니다.
+2. GitHub 저장소 `Amangjae/main` 을 연결합니다.
+3. `render.yaml` 을 읽도록 두거나, 수동 생성 시 아래를 사용합니다.
+   - Build Command: `pip install -r requirements.txt`
+   - Start Command: `uvicorn app:app --host 0.0.0.0 --port $PORT`
+   - Health Check Path: `/api/health`
+4. 환경 변수에 아래 값을 설정합니다.
+   - `KAKAO_REST_API_KEY`
+   - `WEATHER_API_KEY`
+   - `LUNCH_BASE_ADDRESS`
+   - `SEARCH_RADIUS_METERS`
+   - `DB_PATH`
+
+참고:
+- `DB_PATH=data/lunch_recommender.db` 는 배포 환경의 로컬 디스크를 사용합니다.
+- Render 무료 인스턴스는 재배포/재시작 시 로컬 SQLite 데이터가 유지되지 않을 수 있습니다.
+- 운영용으로는 PostgreSQL 같은 외부 DB로 옮기는 것이 안전합니다.
+
 ## 환경 변수
 
 `.env` 파일 예시:
