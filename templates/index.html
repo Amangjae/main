@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회사 점심 추천기</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <header class="header">
+            <h1>🍽️ 회사 점심 추천기</h1>
+            <p id="config-info"></p>
+        </header>
+
+        <!-- 날씨 섹션 -->
+        <section class="card weather-card">
+            <div id="weather-content">
+                <p class="loading">날씨 정보 로드 중...</p>
+            </div>
+        </section>
+
+        <!-- 주요 컨텐츠 -->
+        <main class="content">
+            <!-- 추천 식당 -->
+            <section class="recommendations-section">
+                <h2>오늘의 추천 4곳</h2>
+                <div id="recommendations" class="recommendations-grid">
+                    <p class="loading">추천 식당 로드 중...</p>
+                </div>
+            </section>
+
+            <!-- 왼쪽: 최근 방문 -->
+            <section class="card">
+                <h3>최근 방문 이력</h3>
+                <div id="visits" class="visits-list">
+                    <p class="loading">방문 이력 로드 중...</p>
+                </div>
+            </section>
+
+            <!-- 오른쪽: 전체 식당 -->
+            <section class="card">
+                <h3>등록된 식당 목록</h3>
+                <div class="expander">
+                    <button class="expander-btn" onclick="toggleExpander(this)">
+                        <span class="icon">▶</span> 식당 목록 보기
+                    </button>
+                    <div class="expander-content">
+                        <div id="restaurants" class="restaurants-list">
+                            <p class="loading">식당 목록 로드 중...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- 관리 섹션 -->
+        <aside class="sidebar">
+            <h3>관리</h3>
+            <p>API 키가 없어도 샘플 데이터 기반으로 동작합니다.</p>
+            
+            <div id="management-buttons">
+                <button class="btn btn-primary" onclick="importFromKakao()" id="kakao-btn">
+                    📍 카카오 API로 주변 식당 가져오기
+                </button>
+                <button class="btn btn-secondary" onclick="resetData()">
+                    🔄 초기 데이터 다시 세팅
+                </button>
+                <button class="btn btn-secondary" onclick="refreshData()">
+                    🔃 데이터 새로고침
+                </button>
+                <button class="btn btn-secondary" onclick="clearCache()">
+                    🗑️ 캐시 초기화
+                </button>
+            </div>
+
+            <div id="status-message" class="status-message"></div>
+
+            <hr>
+
+            <h4>환경 변수 예시</h4>
+            <pre><code>KAKAO_REST_API_KEY=...
+WEATHER_API_KEY=...
+LUNCH_BASE_ADDRESS=서울특별시 중구 을지로 16
+SEARCH_RADIUS_METERS=1500
+DB_PATH=data/lunch_recommender.db</code></pre>
+        </aside>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

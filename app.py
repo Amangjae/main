@@ -1,8 +1,13 @@
 import os
 from datetime import datetime, timedelta
 import time
+import logging
+from functools import lru_cache
 
-import streamlit as st
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 from db import (
@@ -18,258 +23,230 @@ from recommender import recommend_lunches
 from seed import seed_data
 from weather import get_lunch_weather
 
-
 load_dotenv()
 
-# ============ 성능 로깅 ============
-import logging
+# ============ 로깅 ============
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# ============ 설정 ============
 TITLE = "회사 점심 추천기"
 BASE_ADDRESS = os.getenv("LUNCH_BASE_ADDRESS", "서울특별시 중구 을지로 16")
 SEARCH_RADIUS_METERS = int(os.getenv("SEARCH_RADIUS_METERS", "1500"))
 
-st.set_page_config(page_title=TITLE, page_icon=":fork_and_knife:", layout="wide")
+# ============ FastAPI 앱 초기화 ============
+app = FastAPI(title=TITLE)
 
+# CORS 설정
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-def bootstrap() -> None:
-    """DB 초기화 (캐싱)"""
+# Static 파일 마운팅
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# ============ 캐싱 ============
+class CacheManager:
+    """간단한 캐싱 매니저"""
+    def __init__(self):
+        self.cache = {}
+        self.timestamps = {}
+    
+    def get(self, key, ttl_seconds):
+        """TTL이 지나지 않은 캐시 데이터 반환"""
+        if key not in self.cache:
+            return None
+        elapsed = time.time() - self.timestamps[key]
+        if elapsed > ttl_seconds:
+            del self.cache[key]
+            del self.timestamps[key]
+            return None
+        return self.cache[key]
+    
+    def set(self, key, value):
+        """캐시 데이터 저장"""
+        self.cache[key] = value
+        self.timestamps[key] = time.time()
+    
+    def clear(self, key=None):
+        """캐시 초기화"""
+        if key:
+            self.cache.pop(key, None)
+            self.timestamps.pop(key, None)
+        else:
+            self.cache.clear()
+            self.timestamps.clear()
+
+cache_manager = CacheManager()
+
+def get_cached_data(key, func, ttl_seconds):
+    """데이터 캐시 래퍼"""
+    cached = cache_manager.get(key, ttl_seconds)
+    if cached is not None:
+        return cached
+    data = func()
+    cache_manager.set(key, data)
+    return data
+
+# ============ 부트스트랩 ============
+def bootstrap():
+    """DB 초기화"""
     start = time.time()
     init_db()
     if get_restaurant_count() == 0:
+        logger.info("초기 데이터 시딩 시작...")
         seed_data()
     elapsed = (time.time() - start) * 1000
-    logger.info(f"✓ bootstrap: {elapsed:.2f}ms")
+    logger.info(f"✓ Bootstrap 완료: {elapsed:.2f}ms")
 
+# ============ API 엔드포인트 ============
 
-def render_header() -> None:
-    st.title(TITLE)
-    st.caption(
-        f"기준 주소: {BASE_ADDRESS} | 반경 {SEARCH_RADIUS_METERS}m 식당 대상"
-    )
+@app.on_event("startup")
+async def startup_event():
+    """앱 시작 시 DB 초기화"""
+    bootstrap()
 
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    """메인 페이지"""
+    with open("templates/index.html", "r", encoding="utf-8") as f:
+        return f.read()
 
-# ============ 캐싱된 API/DB 조회 함수 ============
-@st.cache_data(ttl=3600)
-def _get_cached_weather():
-    """날씨 데이터 캐싱 (1시간)"""
-    return get_lunch_weather()
-
-
-@st.cache_data(ttl=300)
-def _get_cached_recommendations():
-    """추천 데이터 캐싱 (5분)"""
-    return recommend_lunches()
-
-
-@st.cache_data(ttl=300)
-def _get_cached_recent_visits():
-    """최근 방문 이력 캐싱 (5분)"""
-    return get_recent_visits(limit=10)
-
-
-@st.cache_data(ttl=600)
-def _get_cached_restaurants():
-    """식당 목록 캐싱 (10분)"""
-    return list_restaurants()
-
-
-# ============ UI 렌더링 함수 ============
-def render_weather_card() -> None:
-    weather = _get_cached_weather()
-    icon_map = {
-        "rainy": ":umbrella:",
-        "clear": ":sun_behind_small_cloud:",
-        "hot": ":sunny:",
-        "cold": ":snowflake:",
+@app.get("/api/config")
+async def get_config():
+    """앱 설정 반환"""
+    return {
+        "title": TITLE,
+        "base_address": BASE_ADDRESS,
+        "search_radius_meters": SEARCH_RADIUS_METERS,
+        "has_kakao_api": has_kakao_api_key(),
     }
-    icon = icon_map.get(weather["category"], ":cloud:")
-    st.info(
-        f"{icon} 오늘 점심 날씨: {weather['summary']} "
-        f"(기온 {weather['temperature_c']}°C, 추천 포인트: {weather['note']})"
-    )
 
-
-def render_recommendations() -> None:
-    st.subheader("오늘의 추천 4곳")
-    recommendations = _get_cached_recommendations()
-
-    if not recommendations:
-        st.warning("추천할 식당 데이터가 없습니다. 먼저 초기 데이터를 준비해주세요.")
-        return
-
-    cols = st.columns(2)
-    for index, item in enumerate(recommendations):
-        with cols[index % 2]:
-            with st.container(border=True):
-                st.markdown(f"### {item['name']}")
-                st.write(f"카테고리: {item['category']}")
-                st.write(f"거리: 약 {item['distance_m']}m")
-                st.write(f"추천 유형: {item['recommendation_type']}")
-                st.write(f"추천 점수: {item['score']}")
-                st.write(f"추천 이유: {item['reason']}")
-                st.write(f"예상 예산: {item['price_level']}")
-                if st.button(f"{item['name']} 방문 기록 추가", key=f"visit-{item['id']}"):
-                    add_visit(item["id"])
-                    st.success(f"{item['name']} 방문 이력을 저장했습니다.")
-                    st.cache_data.clear()
-                    st.rerun()
-
-
-def render_visit_history() -> None:
-    st.subheader("최근 방문 이력")
-    visits = _get_cached_recent_visits()
-    if not visits:
-        st.write("아직 방문 이력이 없습니다.")
-        return
-
-    for visit in visits:
-        st.write(
-            f"- {visit['visited_on']} | {visit['restaurant_name']} | "
-            f"{visit['meal_type']} | 누적 {visit['visit_count']}회 방문"
-        )
-
-
-def render_restaurant_list() -> None:
-    with st.expander("등록된 식당 보기"):
-        restaurants = _get_cached_restaurants()
-        st.write(f"총 {len(restaurants)}곳")
-        for restaurant in restaurants:
-            address = restaurant.get("road_address") or restaurant.get("address") or "-"
-            source = restaurant.get("source") or "sample"
-            label = (
-                f"- {restaurant['name']} / {restaurant['category']} / "
-                f"{restaurant['distance_m']}m / {address} / source={source}"
-            )
-            st.write(label)
-            if restaurant.get("place_url"):
-                st.caption(restaurant["place_url"])
-
-
-def import_restaurants_from_kakao() -> None:
+@app.get("/api/weather")
+async def get_weather():
+    """날씨 정보 (캐시: 3600초)"""
     try:
+        def fetch():
+            return get_lunch_weather()
+        weather = get_cached_data("weather", fetch, 3600)
+        return weather
+    except Exception as e:
+        logger.error(f"날씨 조회 실패: {e}")
+        return {
+            "category": "unknown",
+            "summary": "날씨 정보를 가져올 수 없습니다.",
+            "temperature_c": "-",
+            "note": "오류",
+        }
+
+@app.get("/api/recommendations")
+async def get_recommendations():
+    """추천 식당 4곳 (캐시: 300초)"""
+    try:
+        def fetch():
+            return recommend_lunches()
+        recommendations = get_cached_data("recommendations", fetch, 300)
+        return {"recommendations": recommendations}
+    except Exception as e:
+        logger.error(f"추천 식당 조회 실패: {e}")
+        return {"recommendations": [], "error": str(e)}
+
+@app.get("/api/visits")
+async def get_visits(limit: int = 10):
+    """최근 방문 이력 (캐시: 300초)"""
+    try:
+        def fetch():
+            return get_recent_visits(limit=limit)
+        visits = get_cached_data(f"visits_{limit}", fetch, 300)
+        return {"visits": visits}
+    except Exception as e:
+        logger.error(f"방문 이력 조회 실패: {e}")
+        return {"visits": [], "error": str(e)}
+
+@app.get("/api/restaurants")
+async def get_restaurants():
+    """전체 식당 목록 (캐시: 600초)"""
+    try:
+        def fetch():
+            return list_restaurants()
+        restaurants = get_cached_data("restaurants", fetch, 600)
+        return {"restaurants": restaurants, "count": len(restaurants)}
+    except Exception as e:
+        logger.error(f"식당 목록 조회 실패: {e}")
+        return {"restaurants": [], "count": 0, "error": str(e)}
+
+@app.post("/api/visit/{restaurant_id}")
+async def record_visit(restaurant_id: int):
+    """방문 기록 추가"""
+    try:
+        add_visit(restaurant_id)
+        cache_manager.clear("visits_10")
+        cache_manager.clear("recommendations")
+        return {"status": "success", "message": "방문 이력이 저장되었습니다."}
+    except Exception as e:
+        logger.error(f"방문 기록 저장 실패: {e}")
+        return {"status": "error", "message": str(e)}
+
+@app.post("/api/import-kakao")
+async def import_kakao():
+    """카카오 API에서 주변 식당 가져오기"""
+    try:
+        if not has_kakao_api_key():
+            return {
+                "status": "error",
+                "message": "KAKAO_REST_API_KEY가 설정되지 않았습니다.",
+            }
+        
         restaurants = fetch_nearby_restaurants(
             address=BASE_ADDRESS,
             radius_m=SEARCH_RADIUS_METERS,
         )
         result = save_kakao_restaurants(restaurants)
-        st.session_state["kakao_import_result"] = {
+        cache_manager.clear()
+        
+        return {
             "status": "success",
             "inserted": result["inserted"],
             "skipped": result["skipped"],
             "address": BASE_ADDRESS,
             "radius": SEARCH_RADIUS_METERS,
         }
-        st.cache_data.clear()
-    except KakaoLocalError as exc:
-        st.session_state["kakao_import_result"] = {
-            "status": "error",
-            "message": str(exc),
-        }
-    except Exception as exc:
-        st.session_state["kakao_import_result"] = {
-            "status": "error",
-            "message": f"예상하지 못한 오류가 발생했습니다: {exc}",
-        }
+    except KakaoLocalError as e:
+        logger.error(f"카카오 API 오류: {e}")
+        return {"status": "error", "message": str(e)}
+    except Exception as e:
+        logger.error(f"카카오 임포트 실패: {e}")
+        return {"status": "error", "message": f"예상하지 못한 오류: {e}"}
 
-
-def render_import_result() -> None:
-    result = st.session_state.get("kakao_import_result")
-    if not result:
-        return
-
-    if result["status"] == "success":
-        st.sidebar.success(
-            "카카오 API 조회 완료 | "
-            f"새로 추가: {result['inserted']}곳 | "
-            f"중복 건너뛰기: {result['skipped']}곳"
-        )
-        st.sidebar.caption(
-            f"기준 주소: {result['address']} | 반경 {result['radius']}m"
-        )
-    else:
-        st.sidebar.error(result["message"])
-
-
-def render_sidebar() -> None:
-    st.sidebar.header("관리")
-    st.sidebar.write("API 키가 없어도 샘플 데이터 기반으로 동작합니다.")
-
-    api_enabled = has_kakao_api_key()
-    if st.sidebar.button(
-        "카카오 API로 주변 식당 가져오기",
-        disabled=not api_enabled,
-        use_container_width=True,
-    ):
-        import_restaurants_from_kakao()
-        st.rerun()
-
-    if not api_enabled:
-        st.sidebar.warning("KAKAO_REST_API_KEY가 없어서 카카오 불러오기 버튼이 비활성화됩니다.")
-
-    if st.sidebar.button("초기 데이터 다시 세팅"):
+@app.post("/api/reset-data")
+async def reset_data():
+    """초기 데이터 리셋"""
+    try:
         seed_data(reset=True)
-        st.session_state["kakao_import_result"] = {
+        cache_manager.clear()
+        return {
             "status": "success",
-            "inserted": 0,
-            "skipped": 0,
-            "address": BASE_ADDRESS,
-            "radius": SEARCH_RADIUS_METERS,
+            "message": "식당과 방문 이력이 초기화되었습니다.",
         }
-        st.sidebar.success("식당과 방문 이력을 다시 세팅했습니다.")
-        st.cache_data.clear()
-        st.rerun()
+    except Exception as e:
+        logger.error(f"데이터 초기화 실패: {e}")
+        return {"status": "error", "message": str(e)}
 
-    if st.sidebar.button("추천 새로고침"):
-        st.cache_data.clear()
-        st.rerun()
+@app.post("/api/clear-cache")
+async def clear_cache():
+    """캐시 초기화"""
+    try:
+        cache_manager.clear()
+        return {"status": "success", "message": "캐시가 초기화되었습니다."}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
-    st.sidebar.markdown("---")
-    render_import_result()
-    st.sidebar.write("환경 변수 예시")
-    st.sidebar.code(
-        "\n".join(
-            [
-                "KAKAO_REST_API_KEY=...",
-                "WEATHER_API_KEY=...",
-                "LUNCH_BASE_ADDRESS=서울특별시 중구 을지로 16",
-                "SEARCH_RADIUS_METERS=1500",
-                "DB_PATH=data/lunch_recommender.db",
-            ]
-        )
-    )
-
-
-def main() -> None:
-    start_time = time.time()
-    
-    logger.info("=== 앱 시작 ===")
-    bootstrap()
-    render_sidebar()
-    render_header()
-    
-    # 날씨 카드 표시
-    render_weather_card()
-    
-    # 추천 식당 표시
-    render_recommendations()
-    st.markdown("---")
-    
-    # 최근 이력과 식당 목록을 병렬로 표시
-    col1, col2 = st.columns(2)
-    with col1:
-        render_visit_history()
-    with col2:
-        render_restaurant_list()
-    
-    # 성능 정보 출력 (디버그 모드)
-    if os.getenv("DEBUG_PERFORMANCE", "false").lower() == "true":
-        total_time = (time.time() - start_time) * 1000
-        st.markdown("---")
-        st.write(f"### ⏱️ 총 로드 시간: {total_time:.2f}ms")
-        logger.info(f"=== 앱 완료: {total_time:.2f}ms ===")
-
-
+# ============ 실행 ============
 if __name__ == "__main__":
-    main()
+    import uvicorn
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run(app, host="0.0.0.0", port=port)
