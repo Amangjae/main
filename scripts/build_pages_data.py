@@ -32,7 +32,24 @@ def load_service_account() -> Credentials | None:
     raw = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
     if not raw:
         return None
+
+    # Handle the common cases where the secret is stored as:
+    # 1) raw JSON
+    # 2) a JSON string wrapped in quotes
+    # 3) JSON with escaped newline characters in private_key
     info = json.loads(raw)
+    if isinstance(info, str):
+        info = json.loads(info)
+
+    private_key = str(info.get("private_key", "")).strip()
+    if private_key:
+        private_key = private_key.replace("\\n", "\n").strip()
+        if "BEGIN PRIVATE KEY" in private_key and "-----BEGIN PRIVATE KEY-----" not in private_key:
+            private_key = private_key.replace("BEGIN PRIVATE KEY", "-----BEGIN PRIVATE KEY-----")
+        if "END PRIVATE KEY" in private_key and "-----END PRIVATE KEY-----" not in private_key:
+            private_key = private_key.replace("END PRIVATE KEY", "-----END PRIVATE KEY-----")
+        info["private_key"] = private_key
+
     return Credentials.from_service_account_info(info, scopes=SCOPES)
 
 

@@ -148,6 +148,13 @@ https://docs.google.com/spreadsheets/d/1AbCdEfGhIjKlMnOpQrStUvWxYz1234567890/edi
 {"type":"service_account","project_id":"my-project","private_key_id":"...","private_key":"-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n","client_email":"lunch-bot@my-project.iam.gserviceaccount.com","client_id":"..."}
 ```
 
+중요:
+
+- JSON 파일 내용을 일부만 넣으면 안 됩니다.
+- 특히 `private_key` 부분이 빠지거나 줄바꿈이 깨지면 GitHub Actions가 실패합니다.
+- 가장 안전한 방법은 JSON 파일을 메모장으로 연 뒤 `Ctrl + A` 전체 선택, `Ctrl + C` 복사, GitHub Secret에 그대로 `Ctrl + V` 붙여넣기입니다.
+- 직접 타이핑하거나 일부 줄만 복사하면 안 됩니다.
+
 ## 7. GitHub Pages 켜기
 
 GitHub 저장소에서 아래처럼 설정합니다.
@@ -186,6 +193,12 @@ GitHub 저장소에서 아래처럼 설정합니다.
 
 - 서비스 계정 이메일을 시트에 공유했는지 확인
 - `GOOGLE_SHEETS_ID`가 맞는지 확인
+
+### `GOOGLE_SERVICE_ACCOUNT_JSON` 오류가 날 때
+
+- JSON 전체를 처음 `{`부터 마지막 `}`까지 다 넣었는지 확인
+- `private_key` 부분이 포함되어 있는지 확인
+- JSON 파일 내용 전체를 다시 복사해서 Secret 값을 덮어쓰기
 
 ### 홈페이지는 뜨는데 내용이 오래된 것 같을 때
 
