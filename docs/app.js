@@ -1,3 +1,5 @@
+const API_BASE = (window.LUNCH_API_BASE || '').replace(/\/$/, '');
+
 const sampleWeather = {
   category: 'hot',
   summary: '덥고 습함',
@@ -12,16 +14,17 @@ const sampleVisits = [
 ];
 
 const sampleRestaurants = [
-  { name: '을지로국밥', category: '한식', distance_m: 250, address: '서울 중구 을지로 일대', source: 'sample' },
-  { name: '을지로제육식당', category: '한식', distance_m: 430, address: '서울 중구 을지로 일대', source: 'sample' },
-  { name: '을지로파스타', category: '양식', distance_m: 580, address: '서울 중구 을지로 일대', source: 'sample' },
-  { name: '을지로짬뽕', category: '중식', distance_m: 640, address: '서울 중구 을지로 일대', source: 'sample' },
-  { name: '명동칼국수', category: '면요리', distance_m: 780, address: '서울 중구 명동 일대', source: 'sample' },
-  { name: '충무로돈까스', category: '일식', distance_m: 920, address: '서울 중구 충무로 일대', source: 'sample' },
+  { id: 1, name: '을지로국밥', category: '한식', distance_m: 250, address: '서울 중구 을지로 일대', source: 'sample' },
+  { id: 2, name: '을지로제육식당', category: '한식', distance_m: 430, address: '서울 중구 을지로 일대', source: 'sample' },
+  { id: 3, name: '을지로파스타', category: '양식', distance_m: 580, address: '서울 중구 을지로 일대', source: 'sample' },
+  { id: 4, name: '을지로짬뽕', category: '중식', distance_m: 640, address: '서울 중구 을지로 일대', source: 'sample' },
+  { id: 5, name: '명동칼국수', category: '면요리', distance_m: 780, address: '서울 중구 명동 일대', source: 'sample' },
+  { id: 6, name: '충무로돈까스', category: '일식', distance_m: 920, address: '서울 중구 충무로 일대', source: 'sample' },
 ];
 
 const sampleRecommendations = [
   {
+    id: 1,
     name: '을지로국밥',
     category: '한식',
     distance_m: 250,
@@ -31,6 +34,7 @@ const sampleRecommendations = [
     reason: '더운 날씨를 고려했고, 가까우며 익숙한 식당입니다.',
   },
   {
+    id: 2,
     name: '을지로제육식당',
     category: '한식',
     distance_m: 430,
@@ -40,6 +44,7 @@ const sampleRecommendations = [
     reason: '든든한 점심 메뉴이고 이동 부담이 적습니다.',
   },
   {
+    id: 4,
     name: '을지로짬뽕',
     category: '중식',
     distance_m: 640,
@@ -49,6 +54,7 @@ const sampleRecommendations = [
     reason: '실내 선호와 메뉴 다양성을 함께 반영했습니다.',
   },
   {
+    id: 3,
     name: '을지로파스타',
     category: '양식',
     distance_m: 580,
@@ -59,48 +65,85 @@ const sampleRecommendations = [
   },
 ];
 
-function renderWeather() {
-  const iconMap = {
-    rainy: '🌧️',
-    clear: '🌤️',
-    hot: '☀️',
-    cold: '🥶',
+const state = {
+  liveMode: Boolean(API_BASE),
+  restaurantsByName: new Map(sampleRestaurants.map((item) => [item.name, item.id])),
+};
+
+async function apiCall(endpoint, method = 'GET', payload = null) {
+  if (!API_BASE) {
+    throw new Error('API_BASE가 설정되지 않았습니다.');
+  }
+
+  const options = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
   };
 
+  if (payload && method !== 'GET') {
+    options.body = JSON.stringify(payload);
+  }
+
+  const response = await fetch(`${API_BASE}${endpoint}`, options);
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || `API 요청 실패 (${response.status})`);
+  }
+  return data;
+}
+
+function setWeatherBadge(message) {
+  const node = document.getElementById('weather-content');
+  const badge = document.createElement('div');
+  badge.className = 'api-badge';
+  badge.textContent = message;
+  node.appendChild(badge);
+}
+
+function renderWeather(weather) {
+  const iconMap = { rainy: '🌧️', clear: '🌤️', hot: '☀️', cold: '🥶', unknown: '🌥️' };
   document.getElementById('weather-content').innerHTML = `
     <div class="weather-row">
-      <div class="weather-icon">${iconMap[sampleWeather.category] || '🌥️'}</div>
+      <div class="weather-icon">${iconMap[weather.category] || '🌥️'}</div>
       <div>
-        <strong>오늘 점심 날씨: ${sampleWeather.summary}</strong>
-        <p>기온 ${sampleWeather.temperature_c}°C</p>
-        <p>${sampleWeather.note}</p>
+        <strong>오늘 점심 날씨: ${weather.summary}</strong>
+        <p>기온 ${weather.temperature_c}°C</p>
+        <p>${weather.note}</p>
       </div>
     </div>
   `;
+  setWeatherBadge(state.liveMode ? '실제 API 연결 중' : '샘플 데이터 표시 중');
 }
 
-function renderRecommendations() {
-  document.getElementById('recommendations').innerHTML = sampleRecommendations
-    .map(
-      (item) => `
-        <article class="card restaurant-card">
-          <div class="pill">${item.recommendation_type}</div>
-          <h3>${item.name}</h3>
-          <dl class="meta-grid">
-            <div><dt>카테고리</dt><dd>${item.category}</dd></div>
-            <div><dt>거리</dt><dd>${item.distance_m}m</dd></div>
-            <div><dt>점수</dt><dd>${item.score}</dd></div>
-            <div><dt>예산</dt><dd>${item.price_level}</dd></div>
-          </dl>
-          <p class="reason">${item.reason}</p>
-        </article>
-      `
-    )
+function recommendationCard(item, enableVisitButton) {
+  const buttonHtml = enableVisitButton
+    ? `<button class="action-button" onclick="recordTodayVisit(${item.id}, '${item.name.replaceAll("'", "\\'")}')">오늘 방문 기록</button>`
+    : `<button class="action-button" disabled>API 연결 시 방문 기록 가능</button>`;
+
+  return `
+    <article class="card restaurant-card">
+      <div class="pill">${item.recommendation_type}</div>
+      <h3>${item.name}</h3>
+      <dl class="meta-grid">
+        <div><dt>카테고리</dt><dd>${item.category}</dd></div>
+        <div><dt>거리</dt><dd>${item.distance_m}m</dd></div>
+        <div><dt>점수</dt><dd>${item.score}</dd></div>
+        <div><dt>예산</dt><dd>${item.price_level}</dd></div>
+      </dl>
+      <p class="reason">${item.reason}</p>
+      ${buttonHtml}
+    </article>
+  `;
+}
+
+function renderRecommendations(items, enableVisitButton) {
+  document.getElementById('recommendations').innerHTML = items
+    .map((item) => recommendationCard(item, enableVisitButton))
     .join('');
 }
 
-function renderVisits() {
-  document.getElementById('visits').innerHTML = sampleVisits
+function renderVisits(visits) {
+  document.getElementById('visits').innerHTML = visits
     .map(
       (visit) => `
         <div class="list-item">
@@ -112,13 +155,13 @@ function renderVisits() {
     .join('');
 }
 
-function renderRestaurants() {
-  document.getElementById('restaurants').innerHTML = sampleRestaurants
+function renderRestaurants(restaurants) {
+  document.getElementById('restaurants').innerHTML = restaurants
     .map(
       (restaurant) => `
         <div class="list-item">
           <strong>${restaurant.name}</strong>
-          <span>${restaurant.category} · ${restaurant.distance_m}m · ${restaurant.address}</span>
+          <span>${restaurant.category} · ${restaurant.distance_m}m · ${restaurant.road_address || restaurant.address || '-'}</span>
           <span>source=${restaurant.source}</span>
         </div>
       `
@@ -126,7 +169,62 @@ function renderRestaurants() {
     .join('');
 }
 
-renderWeather();
-renderRecommendations();
-renderVisits();
-renderRestaurants();
+async function loadLiveData() {
+  const [weather, recommendationsPayload, visitsPayload, restaurantsPayload] = await Promise.all([
+    apiCall('/api/weather'),
+    apiCall('/api/recommendations'),
+    apiCall('/api/visits'),
+    apiCall('/api/restaurants'),
+  ]);
+
+  const restaurants = restaurantsPayload.restaurants || [];
+  state.restaurantsByName = new Map(restaurants.map((item) => [item.name, item.id]));
+
+  const recommendations = (recommendationsPayload.recommendations || []).map((item) => ({
+    ...item,
+    id: item.id ?? state.restaurantsByName.get(item.name),
+  }));
+
+  renderWeather(weather);
+  renderRecommendations(recommendations, true);
+  renderVisits(visitsPayload.visits || []);
+  renderRestaurants(restaurants);
+}
+
+function loadSampleData() {
+  renderWeather(sampleWeather);
+  renderRecommendations(sampleRecommendations, false);
+  renderVisits(sampleVisits);
+  renderRestaurants(sampleRestaurants);
+}
+
+async function recordTodayVisit(restaurantId, restaurantName) {
+  if (!API_BASE) {
+    alert('GitHub Pages만으로는 저장할 수 없습니다. 외부 API 서버를 연결해 주세요.');
+    return;
+  }
+
+  try {
+    await apiCall(`/api/visit/${restaurantId}`, 'POST');
+    alert(`${restaurantName} 오늘 방문 기록이 저장되었습니다.`);
+    await loadLiveData();
+  } catch (error) {
+    alert(`방문 기록 저장 실패: ${error.message}`);
+  }
+}
+
+async function initializePage() {
+  if (API_BASE) {
+    try {
+      await loadLiveData();
+      return;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  state.liveMode = false;
+  loadSampleData();
+}
+
+initializePage();

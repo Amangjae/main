@@ -10,10 +10,10 @@
     <div class="page-shell">
       <header class="hero">
         <div>
-          <p class="eyebrow">GitHub Pages Demo</p>
+          <p class="eyebrow">GitHub Pages Frontend</p>
           <h1>회사 점심 추천기</h1>
           <p class="hero-copy">
-            기준 주소: 서울특별시 중구 을지로 16 | 반경 1.5km | GitHub Pages 정적 데모
+            기준 주소: 서울특별시 중구 을지로 16 | 반경 1.5km | 외부 API 연결 가능
           </p>
         </div>
       </header>
@@ -45,23 +45,30 @@
         <aside class="sidebar panel">
           <h3>안내</h3>
           <p class="muted">
-            이 페이지는 GitHub Pages에서 바로 보이도록 만든 정적 데모입니다.
+            이 페이지는 GitHub Pages에서 보이는 정적 프론트이며, API 주소를 연결하면 실제 추천/방문 기록이 동작합니다.
           </p>
           <ul class="info-list">
-            <li>현재 화면은 샘플 데이터 기반입니다.</li>
-            <li>FastAPI, SQLite, Kakao API 호출은 Pages 단독으로는 실행되지 않습니다.</li>
-            <li>실시간 데이터와 저장 기능은 별도 Python 서버 배포가 필요합니다.</li>
+            <li>추천 4곳은 데스크톱에서 2칸씩 표시됩니다.</li>
+            <li>API 연결 시 추천 카드에서 오늘 방문 기록 버튼을 누를 수 있습니다.</li>
+            <li>API 연결이 없으면 샘플 데이터로 동작합니다.</li>
           </ul>
 
           <div class="env-box">
-            <h4>저장소 Pages 설정</h4>
+            <h4>Pages 설정</h4>
             <pre><code>Branch: master
 Folder: /docs</code></pre>
+          </div>
+
+          <div class="env-box">
+            <h4>API 연결 설정</h4>
+            <pre><code>docs/config.js
+window.LUNCH_API_BASE = "https://your-api-domain";</code></pre>
           </div>
         </aside>
       </div>
     </div>
 
+    <script src="./config.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

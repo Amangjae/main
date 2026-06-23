@@ -39,9 +39,15 @@ python app.py
 
 주의:
 
-- Pages 버전은 정적 데모입니다.
-- FastAPI, SQLite, Kakao API 실시간 호출은 GitHub Pages 단독으로는 실행되지 않습니다.
-- 실제 서버 기능까지 공개하려면 Render, Railway, EC2 같은 Python 호스팅이 별도로 필요합니다.
+- Pages 자체는 정적 호스팅이므로 FastAPI를 직접 실행하지 못합니다.
+- 대신 `docs/config.js` 에 외부 API 서버 주소를 넣으면 Pages 화면에서 실제 `/api/...` 를 호출할 수 있습니다.
+- 예시:
+
+```js
+window.LUNCH_API_BASE = "https://your-api-domain";
+```
+
+- 이 설정을 넣으면 추천 4곳, 등록 식당, 최근 방문 이력 조회와 `오늘 방문 기록` 버튼까지 실제 API와 연결됩니다.
 
 ## Render 배포
 
