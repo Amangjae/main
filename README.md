@@ -1,55 +1,66 @@
 # 점심 추천
 
-서울특별시 중구 을지로 16을 기본 기준 주소로 사용하는 FastAPI + SQLite 기반 점심 추천 앱입니다. 기준 주소를 화면에서 직접 바꿀 수 있고, 카카오 로컬 API로 반경 1.5km 내 식당을 가져와 추천과 방문 기록에 반영합니다.
+GitHub Pages에서 바로 보여지는 점심 추천 사이트입니다. 데이터는 `Google Sheets + GitHub Actions + Kakao Local API` 흐름으로 갱신되고, 화면은 `docs/` 정적 파일로 배포됩니다.
 
-## 주요 기능
+## 현재 구조
 
-- 오늘 점심 추천 4곳 제공
-- 기존 방문 식당 3곳, 미방문 식당 1곳 우선 추천
-- 실제 날씨와 최근 방문 이력 반영
-- 추천 카드에서 `선택` 버튼 클릭 시 당일 방문 횟수 저장
-- 카카오 로컬 API로 주변 식당 수집 및 SQLite 저장
-- 기준 주소의 동 이름과 실제 날씨 표시
-- PC 2열, 모바일 1열 반응형 카드 레이아웃
+- `docs/`
+  GitHub Pages에 실제로 올라가는 정적 홈페이지
+- `docs/data/site-data.json`
+  페이지가 읽는 정적 데이터 파일
+- `.github/workflows/update-pages-data.yml`
+  매일 오전 9시(KST) 기준으로 데이터를 다시 생성하는 워크플로
+- `scripts/build_pages_data.py`
+  Google Sheets 설정값, 방문 기록, 카카오 식당 데이터, 날씨 데이터를 합쳐 `site-data.json`을 생성
 
-## 실행 방법
+## 동작 방식
 
-```bash
-pip install -r requirements.txt
-python app.py
-```
+1. GitHub Actions가 매일 오전 9시(KST)에 실행됩니다.
+2. Google Sheets의 `config`, `visits` 시트를 읽습니다.
+3. 기준 주소를 카카오 API로 좌표 변환한 뒤 반경 1.5km 식당을 조회합니다.
+4. 결과를 다시 Google Sheets `restaurants` 시트에 반영합니다.
+5. 날씨와 방문 기록을 반영해 추천 4곳을 계산합니다.
+6. 최종 결과를 `docs/data/site-data.json`으로 저장하고 커밋합니다.
+7. GitHub Pages는 그 JSON을 읽어 실제 홈페이지처럼 표시합니다.
 
-브라우저에서 `http://localhost:8000` 으로 접속합니다.
+## GitHub Secrets
 
-## 환경 변수
+저장소 `Settings > Secrets and variables > Actions`에 아래 값을 등록해야 합니다.
 
-`.env` 예시:
+- `KAKAO_REST_API_KEY`
+- `GOOGLE_SHEETS_ID`
+- `GOOGLE_SERVICE_ACCOUNT_JSON`
 
-```env
-KAKAO_REST_API_KEY=your_kakao_rest_api_key
-WEATHER_API_KEY=your_weather_api_key
-LUNCH_BASE_ADDRESS=서울특별시 중구 을지로 16
-SEARCH_RADIUS_METERS=1500
-DB_PATH=data/lunch_recommender.db
-PORT=8000
-```
+## Google Sheets 시트 구성
 
-## API
+### `config` 시트
 
-- `GET /api/config`
-- `GET /api/weather`
-- `GET /api/recommendations`
-- `GET /api/visits`
-- `POST /api/base-address`
-- `POST /api/visit/{restaurant_id}`
-- `POST /api/import-kakao`
-- `POST /api/reset-data`
-- `POST /api/clear-cache`
+| key | value |
+| --- | --- |
+| title | 점심 추천 |
+| base_address | 서울특별시 중구 을지로 16 |
+| search_radius_meters | 1500 |
 
-## GitHub Pages
+### `visits` 시트
 
-`docs/` 폴더에는 GitHub Pages용 정적 화면이 포함되어 있습니다. 실제 API 서버와 연결하려면 `docs/config.js` 에 아래처럼 API 주소를 넣으면 됩니다.
+| restaurant_key | restaurant_name | visited_on | meal_type | visit_count |
+| --- | --- | --- | --- | --- |
+| sample-1 | 을지로국밥 | 2026-06-20 | 점심 | 2 |
 
-```js
-window.LUNCH_API_BASE = "https://your-api-domain";
-```
+### `restaurants` 시트
+
+워크플로가 자동으로 갱신합니다.
+
+## GitHub Pages 설정
+
+`Settings > Pages` 에서 아래처럼 설정하면 됩니다.
+
+- `Source`: `Deploy from a branch`
+- `Branch`: `master`
+- `Folder`: `/docs`
+
+## 메모
+
+- 설정 영역은 타이틀 바로 아래에 배치되어 있습니다.
+- Pages는 정적 사이트이므로 Python 서버 없이 바로 열립니다.
+- `docs/config.js`의 `window.LUNCH_SHEET_URL`에 시트 URL을 넣으면 화면의 `구글 시트 열기` 버튼이 활성화됩니다.

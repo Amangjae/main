@@ -26,7 +26,7 @@ body {
 }
 
 .page-shell {
-  max-width: 1280px;
+  max-width: 1180px;
   margin: 0 auto;
   padding: 24px;
 }
@@ -53,11 +53,12 @@ body {
 }
 
 .hero-copy {
-  margin-top: 12px;
+  margin: 12px 0 20px;
   color: var(--muted);
   font-size: 16px;
 }
 
+.settings-panel,
 .weather-panel,
 .panel,
 .card {
@@ -65,6 +66,57 @@ body {
   border: 1px solid var(--line);
   border-radius: 20px;
   box-shadow: var(--shadow);
+}
+
+.settings-panel {
+  padding: 20px;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.settings-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.generated-at {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 14px;
+}
+
+.field-label {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.text-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  font-size: 14px;
+}
+
+.action-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
 }
 
 .weather-panel {
@@ -100,16 +152,10 @@ body {
   font-weight: 700;
 }
 
-.layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 22px;
-  margin-top: 22px;
-}
-
 .main-content {
   display: grid;
   gap: 22px;
+  margin-top: 22px;
 }
 
 .section-heading {
@@ -191,38 +237,12 @@ body {
 }
 
 .list-item span,
-.muted,
 .loading {
   color: var(--muted);
   font-size: 14px;
 }
 
-.field-label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.text-input {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: #fff;
-  font-size: 14px;
-  margin-bottom: 10px;
-}
-
-.action-group {
-  display: grid;
-  gap: 10px;
-  margin: 18px 0 20px;
-}
-
-.primary-button,
-.secondary-button,
-.action-button {
+button {
   border: none;
   border-radius: 14px;
   padding: 12px 14px;
@@ -231,25 +251,18 @@ body {
   cursor: pointer;
 }
 
-.primary-button,
-.action-button {
+.primary-button {
   background: var(--accent);
   color: white;
 }
 
 .secondary-button {
-  width: 100%;
   background: #fff;
-  border: 1px solid var(--line);
   color: var(--ink);
+  border: 1px solid var(--line);
 }
 
-.action-button {
-  margin-top: auto;
-}
-
-.action-button:disabled,
-.primary-button:disabled {
+button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
@@ -257,7 +270,7 @@ body {
 .status-message {
   min-height: 24px;
   font-weight: 700;
-  margin-top: 16px;
+  margin-top: 14px;
 }
 
 .status-message.success {
@@ -268,29 +281,31 @@ body {
   color: var(--bad);
 }
 
-@media (max-width: 960px) {
-  .layout {
-    grid-template-columns: 1fr;
-  }
+.status-message.saving {
+  color: var(--accent-2);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 760px) {
   .page-shell {
     padding: 14px;
   }
 
   .hero,
+  .settings-panel,
   .weather-panel,
   .panel {
     padding: 18px;
   }
 
+  .settings-header,
   .weather-row,
-  .weather-main {
+  .weather-main,
+  .section-heading {
     flex-direction: column;
     align-items: flex-start;
   }
 
+  .settings-grid,
   .recommendation-grid,
   .meta-grid {
     grid-template-columns: 1fr;

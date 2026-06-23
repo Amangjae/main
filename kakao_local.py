@@ -31,7 +31,7 @@ MENU_RULES = [
     {"match": ["제육"], "menu": "제육볶음", "calories": 820},
     {"match": ["비빔밥"], "menu": "비빔밥", "calories": 650},
     {"match": ["샐러드"], "menu": "치킨 샐러드", "calories": 350},
-    {"match": ["초밥", "스시"], "menu": "모둠초밥", "calories": 520},
+    {"match": ["초밥", "스시", "참치"], "menu": "모둠초밥", "calories": 520},
 ]
 
 CATEGORY_DEFAULTS = [
@@ -93,7 +93,7 @@ def _extract_dong(document: dict[str, Any], fallback: str) -> str:
     return parts[2] if len(parts) >= 3 else address_name
 
 
-def _sample_restaurants() -> list[dict[str, Any]]:
+def sample_restaurants() -> list[dict[str, Any]]:
     samples = [
         ("sample-1", "을지로국밥", "한식", "서울 중구 을지로 일대", 250),
         ("sample-2", "명동칼국수", "면요리", "서울 중구 명동 일대", 780),
@@ -110,7 +110,7 @@ def _sample_restaurants() -> list[dict[str, Any]]:
         rows.append(
             {
                 "external_id": external_id,
-                "kakao_place_id": None,
+                "kakao_place_id": "",
                 "name": name,
                 "category": category,
                 "address": address,
@@ -133,10 +133,6 @@ def _sample_restaurants() -> list[dict[str, Any]]:
             }
         )
     return rows
-
-
-def search_nearby_restaurants(address: str | None = None, radius_m: int = DEFAULT_RADIUS, keyword: str = "맛집") -> list[dict[str, Any]]:
-    return _sample_restaurants()
 
 
 def geocode_address(address: str) -> dict[str, str]:
@@ -254,11 +250,14 @@ def search_food_places_by_category(x: str, y: str, radius_m: int) -> list[dict[s
     return restaurants
 
 
-def fetch_nearby_restaurants(address: str | None = None, radius_m: int | None = None) -> list[dict[str, Any]]:
+def fetch_nearby_restaurants(address: str | None = None, radius_m: int | None = None) -> tuple[dict[str, str], list[dict[str, Any]]]:
+    if not has_kakao_api_key():
+        raise KakaoLocalError("KAKAO_REST_API_KEY가 설정되어 있지 않습니다.")
+
     address = address or os.getenv("LUNCH_BASE_ADDRESS", DEFAULT_ADDRESS)
     radius = radius_m or int(os.getenv("SEARCH_RADIUS_METERS", str(DEFAULT_RADIUS)))
-    coordinates = geocode_address(address)
-    restaurants = search_food_places_by_category(coordinates["x"], coordinates["y"], radius)
+    location = geocode_address(address)
+    restaurants = search_food_places_by_category(location["x"], location["y"], radius)
     if not restaurants:
         raise KakaoLocalError("카카오 API로 조회된 식당이 없습니다.")
-    return restaurants
+    return location, restaurants

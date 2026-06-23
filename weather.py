@@ -4,19 +4,19 @@ import requests
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 
 
-def _sample_weather() -> dict:
+def sample_weather() -> dict:
     return {
         "category": "clear",
         "summary": "맑음",
         "temperature_c": 18,
-        "note": "무난한 날씨라 대중적인 점심 메뉴를 추천합니다.",
+        "note": "무난한 날씨라 가볍게 고르기 좋은 점심입니다.",
     }
 
 
 def _classify_weather(code: int, temperature_c: int) -> tuple[str, str, str]:
     rainy_codes = {51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99}
     if code in rainy_codes:
-        return "rainy", "비", "실내 좌석과 국물 메뉴가 어울리는 날씨입니다."
+        return "rainy", "비", "실내 좌석과 국물 메뉴가 잘 어울리는 날씨입니다."
     if temperature_c >= 28:
         return "hot", "덥고 습함", "시원한 메뉴나 실내 식당이 잘 어울립니다."
     if temperature_c <= 5:
@@ -26,7 +26,7 @@ def _classify_weather(code: int, temperature_c: int) -> tuple[str, str, str]:
 
 def get_lunch_weather(latitude: float | None = None, longitude: float | None = None) -> dict:
     if latitude is None or longitude is None:
-        return _sample_weather()
+        return sample_weather()
 
     try:
         response = requests.get(
@@ -51,4 +51,4 @@ def get_lunch_weather(latitude: float | None = None, longitude: float | None = N
             "note": note,
         }
     except Exception:
-        return _sample_weather()
+        return sample_weather()

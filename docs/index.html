@@ -9,45 +9,50 @@
   <body>
     <div class="page-shell">
       <header class="hero">
-        <div>
-          <p class="eyebrow">GitHub Pages Frontend</p>
-          <h1>점심 추천</h1>
-          <p id="config-info" class="hero-copy">기준 주소 정보를 불러오는 중입니다.</p>
-        </div>
+        <p class="eyebrow">GitHub Pages + Google Sheets</p>
+        <h1>점심 추천</h1>
+        <p id="config-info" class="hero-copy">오늘 점심 데이터를 불러오는 중입니다.</p>
+
+        <section class="settings-panel">
+          <div class="settings-header">
+            <h2>설정</h2>
+            <span id="generated-at" class="generated-at"></span>
+          </div>
+          <div class="settings-grid">
+            <label class="field-label">
+              기준 주소
+              <input id="base-address-input" class="text-input" type="text" readonly />
+            </label>
+            <label class="field-label">
+              검색 반경
+              <input id="radius-input" class="text-input" type="text" readonly />
+            </label>
+          </div>
+          <div class="action-group">
+            <button class="primary-button" onclick="refreshData()">데이터 새로고침</button>
+            <button id="sheet-open-btn" class="secondary-button" onclick="openSheet()">구글 시트 열기</button>
+          </div>
+          <div id="status-message" class="status-message"></div>
+        </section>
       </header>
 
       <section class="weather-panel">
         <div id="weather-content" class="loading">실제 날씨 정보를 불러오는 중입니다.</div>
       </section>
 
-      <div class="layout">
-        <main class="main-content">
-          <section>
-            <div class="section-heading">
-              <h2>오늘의 추천 4곳</h2>
-            </div>
-            <div id="recommendations" class="recommendation-grid"></div>
-          </section>
-
-          <section class="panel">
-            <h3>최근 방문 기록</h3>
-            <div id="visits" class="stack-list"></div>
-          </section>
-        </main>
-
-        <aside class="sidebar panel">
-          <h3>설정</h3>
-          <label class="field-label" for="base-address-input">기준 주소</label>
-          <input id="base-address-input" class="text-input" type="text" placeholder="기준 주소를 입력해 주세요." />
-          <button class="secondary-button" onclick="applyBaseAddress()">기준 주소 적용</button>
-
-          <div class="action-group">
-            <button id="external-api-btn" class="primary-button" onclick="connectExternalApi()">외부 API 연결</button>
+      <main class="main-content">
+        <section>
+          <div class="section-heading">
+            <h2>오늘의 추천 4곳</h2>
           </div>
+          <div id="recommendations" class="recommendation-grid"></div>
+        </section>
 
-          <div id="status-message" class="status-message"></div>
-        </aside>
-      </div>
+        <section class="panel">
+          <h3>최근 방문 기록</h3>
+          <div id="visits" class="stack-list"></div>
+        </section>
+      </main>
     </div>
 
     <script src="./config.js"></script>
