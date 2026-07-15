@@ -3,56 +3,182 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>점심 추천</title>
+
+    <meta
+      name="description"
+      content="날씨, 거리, 방문 기록을 반영해 점심 식당을 추천하는 페이지입니다."
+    />
+
+    <title>오늘 뭐 먹지?</title>
+
     <link rel="stylesheet" href="./style.css" />
   </head>
+
   <body>
     <div class="page-shell">
+      <!-- 상단 소개 영역 -->
       <header class="hero">
-        <p class="eyebrow">GitHub Pages + Google Sheets</p>
-        <h1>점심 추천</h1>
-        <p id="config-info" class="hero-copy">오늘 점심 데이터를 불러오는 중입니다.</p>
+        <div class="hero-top">
+          <div>
+            <p class="eyebrow">SMART LUNCH PICK</p>
 
-        <section class="settings-panel">
-          <div class="settings-header">
-            <h2>설정</h2>
-            <span id="generated-at" class="generated-at"></span>
+            <h1>오늘 뭐 먹지?</h1>
+
+            <p id="config-info" class="hero-copy">
+              오늘 점심 추천 데이터를 불러오는 중입니다.
+            </p>
           </div>
+
+          <div class="hero-status">
+            <span class="status-dot"></span>
+            <span id="generated-at">업데이트 시간 확인 중</span>
+          </div>
+        </div>
+
+        <!-- 현재 기준 요약 -->
+        <section class="location-summary" aria-label="현재 추천 기준">
+          <div class="location-summary-text">
+            <span class="location-icon" aria-hidden="true">📍</span>
+
+            <div>
+              <span class="summary-label">현재 추천 기준</span>
+              <strong id="location-summary-value">
+                주소와 검색 반경을 불러오는 중입니다.
+              </strong>
+            </div>
+          </div>
+
+          <div class="top-actions">
+            <button
+              id="settings-toggle-btn"
+              class="secondary-button"
+              type="button"
+              aria-expanded="false"
+              aria-controls="settings-panel"
+            >
+              설정 보기
+            </button>
+
+            <button
+              id="sheet-open-btn"
+              class="secondary-button"
+              type="button"
+              disabled
+            >
+              구글 시트 열기
+            </button>
+
+            <button id="refresh-btn" class="primary-button" type="button">
+              새로고침
+            </button>
+          </div>
+        </section>
+
+        <!-- 접히는 설정 영역 -->
+        <section
+          id="settings-panel"
+          class="settings-panel"
+          aria-label="추천 설정"
+          hidden
+        >
+          <div class="settings-header">
+            <div>
+              <p class="panel-kicker">추천 설정</p>
+              <h2>현재 적용 중인 기준</h2>
+            </div>
+
+            <span class="settings-guide">
+              수정은 연결된 Google Sheets에서 진행합니다.
+            </span>
+          </div>
+
           <div class="settings-grid">
             <label class="field-label">
               기준 주소
-              <input id="base-address-input" class="text-input" type="text" readonly />
+              <input
+                id="base-address-input"
+                class="text-input"
+                type="text"
+                readonly
+              />
             </label>
+
             <label class="field-label">
               검색 반경
-              <input id="radius-input" class="text-input" type="text" readonly />
+              <input
+                id="radius-input"
+                class="text-input"
+                type="text"
+                readonly
+              />
             </label>
           </div>
-          <div class="action-group">
-            <button class="primary-button" onclick="refreshData()">데이터 새로고침</button>
-            <button id="sheet-open-btn" class="secondary-button" onclick="openSheet()">구글 시트 열기</button>
-          </div>
-          <div id="status-message" class="status-message"></div>
         </section>
+
+        <div
+          id="status-message"
+          class="status-message"
+          role="status"
+          aria-live="polite"
+        ></div>
       </header>
 
-      <section class="weather-panel">
-        <div id="weather-content" class="loading">실제 날씨 정보를 불러오는 중입니다.</div>
+      <!-- 날씨 영역 -->
+      <section class="weather-panel" aria-labelledby="weather-title">
+        <div class="section-title-row">
+          <div>
+            <p class="panel-kicker">TODAY'S WEATHER</p>
+            <h2 id="weather-title">오늘 점심 날씨</h2>
+          </div>
+        </div>
+
+        <div id="weather-content" class="loading">
+          실제 날씨 정보를 불러오는 중입니다.
+        </div>
       </section>
 
       <main class="main-content">
-        <section>
+        <!-- 추천 영역 -->
+        <section aria-labelledby="recommendation-title">
           <div class="section-heading">
-            <h2>오늘의 추천 4곳</h2>
+            <div>
+              <p class="panel-kicker">RECOMMENDATION</p>
+              <h2 id="recommendation-title">오늘의 추천 4곳</h2>
+            </div>
+
+            <p class="section-description">
+              거리, 날씨, 최근 방문 기록을 함께 반영했습니다.
+            </p>
           </div>
-          <div id="recommendations" class="recommendation-grid"></div>
+
+          <div
+            id="recommendations"
+            class="recommendation-grid"
+            aria-live="polite"
+          ></div>
         </section>
 
-        <section class="panel">
-          <h3>최근 방문 기록</h3>
+        <!-- 최근 방문 기록 -->
+        <section class="panel" aria-labelledby="visit-title">
+          <div class="section-heading visit-heading">
+            <div>
+              <p class="panel-kicker">RECENT HISTORY</p>
+              <h2 id="visit-title">최근 방문 기록</h2>
+            </div>
+
+            <span class="history-note">최근 5건 표시</span>
+          </div>
+
           <div id="visits" class="stack-list"></div>
         </section>
       </main>
+
+      <footer class="page-footer">
+        <p>
+          Google Sheets · Kakao Local API · GitHub Pages 기반으로 자동
+          업데이트됩니다.
+        </p>
+      </footer>
     </div>
 
     <script src="./config.js"></script>

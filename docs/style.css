@@ -1,276 +1,349 @@
 :root {
   --bg: #f4efe6;
   --card: #fffaf2;
+  --card-strong: #ffffff;
   --ink: #1f2933;
   --muted: #6b7280;
   --line: #e7d9c7;
   --accent: #d66b3d;
+  --accent-dark: #b94f25;
+  --accent-soft: #f8e5d7;
   --accent-2: #2f6f62;
+  --accent-2-soft: #eef8f4;
   --good: #2e8b57;
   --bad: #b54747;
+  --warning: #c57a18;
   --shadow: 0 18px 40px rgba(67, 46, 24, 0.08);
+  --shadow-hover: 0 24px 52px rgba(67, 46, 24, 0.14);
 }
 
 * {
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
-  font-family: "Segoe UI", "Apple SD Gothic Neo", sans-serif;
+  min-width: 320px;
+  font-family:
+    "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", Arial, sans-serif;
   color: var(--ink);
   background:
-    radial-gradient(circle at top right, rgba(243, 182, 63, 0.16), transparent 22%),
-    radial-gradient(circle at left 20%, rgba(214, 107, 61, 0.12), transparent 18%),
+    radial-gradient(
+      circle at top right,
+      rgba(243, 182, 63, 0.16),
+      transparent 24%
+    ),
+    radial-gradient(
+      circle at left 18%,
+      rgba(214, 107, 61, 0.1),
+      transparent 20%
+    ),
     var(--bg);
 }
 
-.page-shell {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 24px;
+button,
+input {
+  font: inherit;
 }
 
+button {
+  border: none;
+}
+
+button:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 3px solid rgba(214, 107, 61, 0.28);
+  outline-offset: 3px;
+}
+
+.page-shell {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px 28px 48px;
+}
+
+/* 공통 텍스트 */
+
+.eyebrow,
+.panel-kicker {
+  margin: 0 0 8px;
+  color: var(--accent-2);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.section-description,
+.history-note,
+.settings-guide {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.loading {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* 상단 히어로 */
+
 .hero {
-  background: linear-gradient(135deg, #fff6e7, #fbe0c8);
+  padding: 34px;
   border: 1px solid var(--line);
-  border-radius: 24px;
-  padding: 32px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, #fff8ea 0%, #fbe4cd 100%);
   box-shadow: var(--shadow);
 }
 
-.eyebrow {
-  margin: 0 0 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  font-size: 12px;
-  color: var(--accent-2);
+.hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 28px;
 }
 
 .hero h1 {
   margin: 0;
-  font-size: clamp(32px, 5vw, 52px);
+  font-size: clamp(38px, 5vw, 62px);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
 }
 
 .hero-copy {
-  margin: 12px 0 20px;
+  max-width: 760px;
+  margin: 14px 0 0;
   color: var(--muted);
-  font-size: 16px;
+  font-size: 17px;
+  line-height: 1.7;
 }
+
+.hero-status {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 8px;
+  padding: 10px 13px;
+  border: 1px solid rgba(47, 111, 98, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--accent-2);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--good);
+  box-shadow: 0 0 0 4px rgba(46, 139, 87, 0.12);
+}
+
+/* 추천 기준 요약 */
+
+.location-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  margin-top: 28px;
+  padding: 20px;
+  border: 1px solid rgba(231, 217, 199, 0.9);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.location-summary-text {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.location-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 15px;
+  background: var(--accent-soft);
+  font-size: 21px;
+}
+
+.summary-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.location-summary strong {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.top-actions,
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* 버튼 */
+
+button,
+.map-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 11px 16px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    background-color 0.16s ease;
+}
+
+button:hover:not(:disabled),
+.map-button:hover {
+  transform: translateY(-1px);
+}
+
+.primary-button,
+.map-button {
+  color: #fff;
+  background: var(--accent);
+  box-shadow: 0 10px 22px rgba(214, 107, 61, 0.2);
+}
+
+.primary-button:hover:not(:disabled),
+.map-button:hover {
+  background: var(--accent-dark);
+}
+
+.secondary-button {
+  color: var(--ink);
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.secondary-button:hover:not(:disabled) {
+  background: #fff9f1;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 설정 패널 */
 
 .settings-panel,
 .weather-panel,
 .panel,
 .card {
-  background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 20px;
+  border-radius: 22px;
+  background: var(--card);
   box-shadow: var(--shadow);
 }
 
 .settings-panel {
-  padding: 20px;
+  margin-top: 16px;
+  padding: 22px;
+  animation: settings-open 0.18s ease;
+}
+
+.settings-panel[hidden] {
+  display: none;
+}
+
+@keyframes settings-open {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .settings-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 16px;
+  margin-bottom: 18px;
 }
 
-.settings-header h2 {
+.settings-header h2,
+.section-heading h2,
+.section-title-row h2,
+.panel h2 {
   margin: 0;
-  font-size: 20px;
-}
-
-.generated-at {
-  color: var(--muted);
-  font-size: 13px;
+  font-size: 24px;
+  letter-spacing: -0.025em;
 }
 
 .settings-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: minmax(0, 2fr) minmax(180px, 1fr);
   gap: 14px;
 }
 
 .field-label {
   display: grid;
   gap: 8px;
+  color: var(--ink);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .text-input {
   width: 100%;
-  padding: 12px 14px;
+  padding: 13px 14px;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: #fff;
-  font-size: 14px;
-}
-
-.action-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.weather-panel {
-  margin-top: 22px;
-  padding: 22px 24px;
-}
-
-.weather-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-}
-
-.weather-main {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-.weather-icon {
-  font-size: 44px;
-}
-
-.api-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: #eef8f4;
-  color: var(--accent-2);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.main-content {
-  display: grid;
-  gap: 22px;
-  margin-top: 22px;
-}
-
-.section-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.recommendation-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.restaurant-card {
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-}
-
-.restaurant-card h3 {
-  margin: 12px 0;
-  font-size: 22px;
-}
-
-.pill {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: #f8e5d7;
-  color: var(--accent);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.meta-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin: 14px 0;
-}
-
-.meta-grid dt {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.meta-grid dd {
-  margin: 3px 0 0;
-  font-weight: 700;
-}
-
-.reason {
-  min-height: 72px;
-  color: var(--muted);
-  line-height: 1.5;
-}
-
-.panel {
-  padding: 20px;
-}
-
-.stack-list {
-  display: grid;
-  gap: 12px;
-}
-
-.list-item {
-  padding: 14px;
-  border-radius: 14px;
-  background: #fff;
-  border: 1px solid #efdfcf;
-  display: grid;
-  gap: 6px;
-}
-
-.list-item span,
-.loading {
-  color: var(--muted);
-  font-size: 14px;
-}
-
-button {
-  border: none;
-  border-radius: 14px;
-  padding: 12px 14px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.primary-button {
-  background: var(--accent);
-  color: white;
-}
-
-.secondary-button {
-  background: #fff;
   color: var(--ink);
-  border: 1px solid var(--line);
+  background: #fff;
+  font-size: 14px;
 }
 
-button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+.text-input[readonly] {
+  color: #4b5563;
+  background: #fffdf9;
 }
+
+/* 상태 메시지 */
 
 .status-message {
-  min-height: 24px;
-  font-weight: 700;
+  min-height: 22px;
   margin-top: 14px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.status-message:empty {
+  display: none;
 }
 
 .status-message.success {
@@ -285,24 +358,379 @@ button:disabled {
   color: var(--accent-2);
 }
 
-@media (max-width: 760px) {
-  .page-shell {
-    padding: 14px;
+/* 날씨 */
+
+.weather-panel {
+  margin-top: 22px;
+  padding: 26px 28px;
+}
+
+.section-title-row,
+.section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.weather-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 18px;
+}
+
+.weather-main {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.weather-icon {
+  display: grid;
+  width: 76px;
+  height: 76px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #fff4dc, #f8dfbc);
+  font-size: 38px;
+}
+
+.weather-copy strong {
+  display: block;
+  font-size: 21px;
+  line-height: 1.4;
+}
+
+.weather-temperature {
+  margin: 6px 0 3px;
+  color: var(--accent);
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.weather-note {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.api-badge {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: var(--accent-2);
+  background: var(--accent-2-soft);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* 메인 */
+
+.main-content {
+  display: grid;
+  gap: 26px;
+  margin-top: 28px;
+}
+
+.section-heading {
+  margin-bottom: 16px;
+}
+
+/* 추천 카드 */
+
+.recommendation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.restaurant-card {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 24px;
+  overflow: hidden;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.restaurant-card::after {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: rgba(214, 107, 61, 0.07);
+  content: "";
+}
+
+.restaurant-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+
+.card-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 28px;
+}
+
+.badge-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.pill,
+.category-pill {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pill {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.category-pill {
+  color: var(--accent-2);
+  background: var(--accent-2-soft);
+}
+
+.score-note {
+  position: relative;
+  z-index: 1;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.restaurant-card h3 {
+  position: relative;
+  z-index: 1;
+  margin: 16px 0 5px;
+  font-size: 24px;
+  line-height: 1.35;
+  letter-spacing: -0.03em;
+  overflow-wrap: anywhere;
+}
+
+.main-menu {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: var(--accent-2);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.meta-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0 16px;
+}
+
+.meta-item {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid #efe1d2;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.meta-item dt {
+  margin: 0 0 5px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.meta-item dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.reason-box {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 92px;
+  padding: 15px;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 14px 14px 0;
+  background: #fff8ef;
+}
+
+.reason-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.reason {
+  margin: 0;
+  color: #5f6268;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.card-actions {
+  position: relative;
+  z-index: 1;
+  margin-top: 18px;
+}
+
+.map-button {
+  width: 100%;
+}
+
+/* 방문 기록 */
+
+.panel {
+  padding: 24px;
+}
+
+.visit-heading {
+  align-items: center;
+}
+
+.stack-list {
+  display: grid;
+  gap: 12px;
+}
+
+.list-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 16px;
+  border: 1px solid #efdfcf;
+  border-radius: 15px;
+  background: #fff;
+}
+
+.list-item-main {
+  min-width: 0;
+}
+
+.list-item strong {
+  display: block;
+  margin-bottom: 5px;
+  overflow-wrap: anywhere;
+}
+
+.list-item span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.visit-count {
+  flex-shrink: 0;
+  padding: 7px 10px;
+  border-radius: 999px;
+  color: var(--accent-2);
+  background: var(--accent-2-soft);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* 푸터 */
+
+.page-footer {
+  padding: 28px 0 0;
+  color: var(--muted);
+  text-align: center;
+  font-size: 12px;
+}
+
+/* 반응형 */
+
+@media (max-width: 900px) {
+  .hero-top,
+  .location-summary,
+  .section-heading,
+  .section-title-row,
+  .weather-row {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
-  .hero,
+  .hero-status {
+    align-self: flex-start;
+  }
+
+  .top-actions {
+    width: 100%;
+  }
+
+  .top-actions button {
+    flex: 1 1 150px;
+  }
+
+  .section-description {
+    margin: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .page-shell {
+    padding: 14px 14px 32px;
+  }
+
+  .hero {
+    padding: 22px;
+    border-radius: 22px;
+  }
+
+  .hero h1 {
+    font-size: 39px;
+  }
+
+  .hero-copy {
+    font-size: 15px;
+  }
+
+  .location-summary {
+    margin-top: 22px;
+    padding: 16px;
+  }
+
   .settings-panel,
   .weather-panel,
   .panel {
     padding: 18px;
   }
 
-  .settings-header,
-  .weather-row,
-  .weather-main,
-  .section-heading {
-    flex-direction: column;
+  .settings-header {
     align-items: flex-start;
+    flex-direction: column;
   }
 
   .settings-grid,
@@ -311,7 +739,75 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
-  .restaurant-card h3 {
-    font-size: 20px;
+  .weather-main {
+    align-items: flex-start;
   }
+
+  .weather-icon {
+    width: 62px;
+    height: 62px;
+    border-radius: 18px;
+    font-size: 31px;
+  }
+
+  .weather-copy strong {
+    font-size: 18px;
+  }
+
+  .weather-temperature {
+    font-size: 26px;
+  }
+
+  .restaurant-card {
+    padding: 19px;
+  }
+
+  .restaurant-card h3 {
+    font-size: 21px;
+  }
+
+  .reason-box {
+    min-height: 0;
+  }
+
+  .list-item {
+    grid-template-columns: 1fr;
+  }
+
+  .visit-count {
+    width: fit-content;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .top-actions button {
+    width: 100%;
+  }
+
+  .location-summary-text {
+    align-items: flex-start;
+  }
+
+  .section-heading h2,
+  .section-title-row h2,
+  .panel h2,
+  .settings-header h2 {
+    font-size: 21px;
+  }
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
