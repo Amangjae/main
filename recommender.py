@@ -1,123 +1,218 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from typing import Any
 
 
-def _days_since(last_visited_on: str | None) -> int:
-    if not last_visited_on:
+RECENT_EXCLUDE_DAYS = 7
+
+
+def _parse_visit_date(value: str | None) -> date | None:
+    if not value:
+        return None
+    for fmt in ("%Y-%m-%d", "%Y/%m/%d"):
+        try:
+            return datetime.strptime(value[:10], fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
+def _days_since(value: str | None) -> int:
+    parsed = _parse_visit_date(value)
+    if parsed is None:
         return 999
-    last_date = datetime.strptime(last_visited_on, "%Y-%m-%d").date()
-    return (date.today() - last_date).days
+    return (date.today() - parsed).days
 
 
-def _weather_bonus(restaurant: dict, weather: dict) -> tuple[float, str]:
-    category = weather.get("category", "clear")
+def _weather_bonus(restaurant: dict[str, Any], weather: dict[str, Any]) -> tuple[float, str]:
+    category = str(weather.get("category", "clear"))
     score = 0.0
 
     if category == "rainy":
-        score += restaurant.get("indoor_score", 3) * 0.8
-        score += restaurant.get("soup_score", 2) * 0.6
-        return score, "비 오는 날이라 실내 좌석과 국물 메뉴를 더 반영했습니다."
+        score += float(restaurant.get("indoor_score", 3)) * 0.9
+        score += float(restaurant.get("soup_score", 2)) * 0.6
+        return score, "비 오는 날이라 실내 식사와 국물 메뉴에 가점을 줬습니다."
+
     if category == "hot":
-        score += restaurant.get("noodle_score", 2) * 0.7
-        score += restaurant.get("indoor_score", 3) * 0.5
-        return score, "더운 날씨라 시원한 면류와 실내 식당을 더 반영했습니다."
+        score += float(restaurant.get("indoor_score", 3)) * 0.7
+        score += float(restaurant.get("noodle_score", 2)) * 0.5
+        return score, "더운 날이라 시원하게 먹기 쉬운 메뉴와 실내 좌석을 반영했습니다."
+
     if category == "cold":
-        score += restaurant.get("soup_score", 2) * 0.8
-        score += restaurant.get("rice_score", 2) * 0.4
-        return score, "쌀쌀한 날씨라 따뜻한 국물과 든든한 식사를 더 반영했습니다."
+        score += float(restaurant.get("soup_score", 2)) * 0.9
+        score += float(restaurant.get("rice_score", 2)) * 0.4
+        return score, "추운 날이라 든든한 식사와 국물 메뉴에 가점을 줬습니다."
 
-    score += restaurant.get("rice_score", 2) * 0.4
-    return score, "무난한 날씨라 대중적인 점심 메뉴를 반영했습니다."
-
-
-def _history_score(total_visits: int, last_visited_on: str | None) -> tuple[float, str]:
-    days = _days_since(last_visited_on)
-
-    if total_visits == 0:
-        return 1.0, "아직 방문 기록이 없어 새로운 후보로 분류했습니다."
-
-    score = min(total_visits * 0.4, 2.0)
-    if days <= 7:
-        return score - 2.5, "최근 7일 이내 방문 기록이 있어 중복 방문 점수를 낮췄습니다."
-    if days <= 14:
-        return score - 1.0, "최근 2주 이내 방문 기록이 있어 소폭 감점했습니다."
-
-    score += min(days / 10, 3.0)
-    return score, "한동안 가지 않았던 식당이라 재방문 후보로 올렸습니다."
+    score += float(restaurant.get("rice_score", 2)) * 0.4
+    return score, "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다."
 
 
 def _distance_score(distance_m: int) -> float:
-    return max(0.0, 2.0 - (distance_m / 1000))
+    return max(0.0, 2.2 - (distance_m / 900))
 
 
-def _visit_index(visits: list[dict]) -> dict[str, dict]:
-    index: dict[str, dict] = {}
+def _party_size_bonus(restaurant: dict[str, Any], party_size: int) -> tuple[float, str]:
+    minimum = int(restaurant.get("party_size_min") or 1)
+    maximum = int(restaurant.get("party_size_max") or 4)
+
+    if minimum <= party_size <= maximum:
+        return 1.6, f"{party_size}명 식사에 비교적 잘 맞는 곳입니다."
+
+    if party_size < minimum:
+        return -1.4, f"{party_size}명이 가기엔 조금 큰 매장으로 판단했습니다."
+
+    return -2.2, f"{party_size}명이 가기엔 좌석 여유가 부족할 수 있습니다."
+
+
+def _build_visit_index(visits: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    index: dict[str, dict[str, Any]] = {}
+
     for visit in visits:
-        key = visit.get("restaurant_key") or visit.get("restaurant_name") or ""
+        decision = str(visit.get("decision", "selected")).strip() or "selected"
+        if decision != "selected":
+            continue
+
+        key = (
+            str(visit.get("restaurant_id") or "").strip()
+            or str(visit.get("restaurant_key") or "").strip()
+            or str(visit.get("restaurant_name") or "").strip()
+        )
         if not key:
             continue
-        item = index.setdefault(key, {"total_visits": 0, "last_visited_on": None})
-        item["total_visits"] += int(visit.get("visit_count") or 1)
-        visited_on = visit.get("visited_on")
-        if visited_on and (item["last_visited_on"] is None or visited_on > item["last_visited_on"]):
-            item["last_visited_on"] = visited_on
+
+        item = index.setdefault(
+            key,
+            {
+                "restaurant_name": str(visit.get("restaurant_name") or "").strip(),
+                "total_visits": 0,
+                "last_selected_on": "",
+            },
+        )
+        item["total_visits"] += 1
+
+        visited_on = str(
+            visit.get("date")
+            or visit.get("visited_on")
+            or visit.get("selected_at")
+            or ""
+        ).strip()
+        if visited_on and visited_on > item["last_selected_on"]:
+            item["last_selected_on"] = visited_on
+
     return index
 
 
-def recommend_lunches(restaurants: list[dict], visits: list[dict], weather: dict, limit: int = 4) -> list[dict]:
-    visit_index = _visit_index(visits)
-    visited = []
-    unvisited = []
+def _history_score(total_visits: int, last_selected_on: str | None) -> tuple[float, str]:
+    if total_visits <= 0:
+        return 1.2, "아직 선택 기록이 적어서 새로운 후보로 올렸습니다."
+
+    days = _days_since(last_selected_on)
+    if days <= RECENT_EXCLUDE_DAYS:
+        return -5.0, "최근 1주일 안에 선택된 식당이라 우선 제외 대상입니다."
+
+    score = min(total_visits * 0.35, 1.8)
+    score += min(days / 12, 2.8)
+    return score, f"최근 방문 후 {days}일 지나 다시 가도 부담이 적습니다."
+
+
+def _is_recently_selected(last_selected_on: str | None) -> bool:
+    return _days_since(last_selected_on) <= RECENT_EXCLUDE_DAYS
+
+
+def recommend_lunches(
+    restaurants: list[dict[str, Any]],
+    visits: list[dict[str, Any]],
+    weather: dict[str, Any],
+    limit: int = 4,
+    party_size: int = 2,
+) -> list[dict[str, Any]]:
+    visit_index = _build_visit_index(visits)
+    visited_candidates: list[dict[str, Any]] = []
+    new_candidates: list[dict[str, Any]] = []
 
     for restaurant in restaurants:
-        restaurant_key = restaurant.get("external_id") or restaurant.get("kakao_place_id") or restaurant.get("name")
-        history = visit_index.get(restaurant_key) or visit_index.get(restaurant.get("name", ""), {})
+        restaurant_id = (
+            str(restaurant.get("external_id") or "").strip()
+            or str(restaurant.get("kakao_place_id") or "").strip()
+            or str(restaurant.get("name") or "").strip()
+        )
+        if not restaurant_id:
+            continue
+
+        history = visit_index.get(restaurant_id) or visit_index.get(
+            str(restaurant.get("name") or "").strip(),
+            {},
+        )
         total_visits = int(history.get("total_visits") or 0)
-        last_visited_on = history.get("last_visited_on")
+        last_selected_on = str(history.get("last_selected_on") or "").strip()
+
+        if total_visits > 0 and _is_recently_selected(last_selected_on):
+            continue
 
         weather_score, weather_reason = _weather_bonus(restaurant, weather)
-        history_score, history_reason = _history_score(total_visits, last_visited_on)
-        distance_score = _distance_score(int(restaurant.get("distance_m", 0)))
-        total_score = weather_score + history_score + distance_score
+        history_score, history_reason = _history_score(total_visits, last_selected_on)
+        party_score, party_reason = _party_size_bonus(restaurant, party_size)
+        distance_m = int(restaurant.get("distance_m") or 0)
+        distance_score = _distance_score(distance_m)
+        total_score = weather_score + history_score + party_score + distance_score
 
         item = {
-            "id": restaurant_key,
+            "id": restaurant_id,
             "name": restaurant.get("name", ""),
             "category": restaurant.get("category", ""),
-            "distance_m": int(restaurant.get("distance_m", 0)),
+            "distance_m": distance_m,
             "price_level": restaurant.get("price_level", "보통"),
-            "main_menu": restaurant.get("main_menu") or "대표 메뉴 추정 불가",
+            "main_menu": restaurant.get("main_menu") or "대표 메뉴 정보 없음",
             "estimated_calories": int(restaurant.get("estimated_calories") or 0),
+            "party_size_min": int(restaurant.get("party_size_min") or 1),
+            "party_size_max": int(restaurant.get("party_size_max") or 4),
+            "place_url": restaurant.get("place_url", ""),
+            "address": restaurant.get("road_address") or restaurant.get("address") or "",
             "score": round(total_score, 2),
-            "reason": f"{weather_reason} / {history_reason} / 기준 주소에서 약 {restaurant.get('distance_m', 0)}m 거리입니다.",
+            "reason": " / ".join(
+                [
+                    weather_reason,
+                    history_reason,
+                    party_reason,
+                    f"기준 주소에서 약 {distance_m}m 거리입니다.",
+                ]
+            ),
             "total_visits": total_visits,
         }
 
         if total_visits > 0:
-            visited.append(item)
+            visited_candidates.append(item)
         else:
-            unvisited.append(item)
+            new_candidates.append(item)
 
-    visited_sorted = sorted(visited, key=lambda x: (-x["score"], x["distance_m"], x["name"]))
-    unvisited_sorted = sorted(unvisited, key=lambda x: (-x["score"], x["distance_m"], x["name"]))
+    visited_sorted = sorted(
+        visited_candidates,
+        key=lambda item: (-item["score"], item["distance_m"], item["name"]),
+    )
+    new_sorted = sorted(
+        new_candidates,
+        key=lambda item: (-item["score"], item["distance_m"], item["name"]),
+    )
 
-    selected = []
+    selected: list[dict[str, Any]] = []
+
     for item in visited_sorted[:3]:
-        item["recommendation_type"] = "재방문 추천"
+        item["recommendation_type"] = "다시 가도 좋은 곳"
         selected.append(item)
 
-    for item in unvisited_sorted[:1]:
-        item["recommendation_type"] = "새로운 도전"
+    for item in new_sorted[:1]:
+        item["recommendation_type"] = "새로운 후보"
         selected.append(item)
 
     if len(selected) < limit:
-        remaining = [*visited_sorted[3:], *unvisited_sorted[1:]]
+        remaining = [*visited_sorted[3:], *new_sorted[1:]]
         for item in remaining:
-            if item not in selected:
-                item["recommendation_type"] = item.get("recommendation_type", "추가 후보")
-                selected.append(item)
-            if len(selected) == limit:
+            if item in selected:
+                continue
+            item["recommendation_type"] = item.get("recommendation_type", "추가 후보")
+            selected.append(item)
+            if len(selected) >= limit:
                 break
 
     return selected[:limit]

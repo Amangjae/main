@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import time
 from typing import Any
@@ -5,7 +7,7 @@ from typing import Any
 import requests
 
 
-DEFAULT_ADDRESS = "서울특별시 중구 을지로 16"
+DEFAULT_ADDRESS = os.getenv("LUNCH_BASE_ADDRESS", "서울특별시 중구 을지로 16")
 DEFAULT_RADIUS = int(os.getenv("SEARCH_RADIUS_METERS", "1500"))
 ADDRESS_SEARCH_URL = "https://dapi.kakao.com/v2/local/search/address.json"
 KEYWORD_SEARCH_URL = "https://dapi.kakao.com/v2/local/search/keyword.json"
@@ -13,6 +15,7 @@ CATEGORY_SEARCH_URL = "https://dapi.kakao.com/v2/local/search/category.json"
 FOOD_CATEGORY_CODE = "FD6"
 REQUEST_TIMEOUT = 10
 CACHE_TTL_SECONDS = 1800
+
 _session = requests.Session()
 _geocode_cache: dict[str, tuple[float, dict[str, str]]] = {}
 _search_cache: dict[str, tuple[float, list[dict[str, Any]]]] = {}
@@ -23,25 +26,29 @@ class KakaoLocalError(Exception):
 
 
 MENU_RULES = [
-    {"match": ["국밥", "순대국", "해장국"], "menu": "국밥", "calories": 700},
-    {"match": ["칼국수"], "menu": "칼국수", "calories": 600},
-    {"match": ["짬뽕"], "menu": "짬뽕", "calories": 800},
-    {"match": ["파스타"], "menu": "크림 파스타", "calories": 850},
-    {"match": ["돈까스"], "menu": "돈까스", "calories": 900},
-    {"match": ["제육"], "menu": "제육볶음", "calories": 820},
+    {"match": ["국밥", "해장국", "순대국"], "menu": "국밥", "calories": 700},
+    {"match": ["칼국수", "국수"], "menu": "칼국수", "calories": 600},
+    {"match": ["김밥"], "menu": "김밥", "calories": 520},
     {"match": ["비빔밥"], "menu": "비빔밥", "calories": 650},
-    {"match": ["샐러드"], "menu": "치킨 샐러드", "calories": 350},
+    {"match": ["돈까스"], "menu": "돈까스", "calories": 820},
     {"match": ["초밥", "스시", "참치"], "menu": "모둠초밥", "calories": 520},
+    {"match": ["파스타"], "menu": "크림 파스타", "calories": 850},
+    {"match": ["샐러드"], "menu": "치킨 샐러드", "calories": 350},
+    {"match": ["카레"], "menu": "카레라이스", "calories": 740},
+    {"match": ["제육"], "menu": "제육볶음", "calories": 820},
 ]
 
 CATEGORY_DEFAULTS = [
     {"match": ["한식"], "menu": "백반", "calories": 700},
     {"match": ["중식"], "menu": "짜장면", "calories": 790},
-    {"match": ["일식"], "menu": "가라아게 정식", "calories": 720},
+    {"match": ["일식"], "menu": "가정식 정식", "calories": 720},
     {"match": ["양식"], "menu": "파스타", "calories": 820},
-    {"match": ["면요리"], "menu": "잔치국수", "calories": 520},
+    {"match": ["분식"], "menu": "떡볶이", "calories": 520},
     {"match": ["샐러드"], "menu": "샐러드 볼", "calories": 320},
 ]
+
+SMALL_GROUP_KEYWORDS = ("김밥", "분식", "샐러드", "카페", "버거", "죽")
+LARGE_GROUP_KEYWORDS = ("고기", "구이", "뷔페", "전골", "족발", "보쌈", "호텔")
 
 
 def has_kakao_api_key() -> bool:
@@ -55,7 +62,7 @@ def _api_headers() -> dict[str, str]:
     return {"Authorization": f"KakaoAK {api_key}"}
 
 
-def _cache_get(cache: dict, key: str):
+def _cache_get(cache: dict[str, tuple[float, Any]], key: str) -> Any | None:
     cached = cache.get(key)
     if not cached:
         return None
@@ -66,7 +73,7 @@ def _cache_get(cache: dict, key: str):
     return value
 
 
-def _cache_set(cache: dict, key: str, value) -> None:
+def _cache_set(cache: dict[str, tuple[float, Any]], key: str, value: Any) -> None:
     cache[key] = (time.time(), value)
 
 
@@ -78,13 +85,22 @@ def infer_menu_and_calories(name: str, category: str) -> tuple[str, int]:
     for rule in CATEGORY_DEFAULTS:
         if any(keyword in category for keyword in rule["match"]):
             return rule["menu"], rule["calories"]
-    return "대표 메뉴 추정 불가", 0
+    return "대표 메뉴 정보 없음", 0
+
+
+def infer_party_size_range(name: str, category: str) -> tuple[int, int]:
+    combined = f"{name} {category}"
+    if any(keyword in combined for keyword in LARGE_GROUP_KEYWORDS):
+        return 2, 8
+    if any(keyword in combined for keyword in SMALL_GROUP_KEYWORDS):
+        return 1, 2
+    return 1, 4
 
 
 def _extract_dong(document: dict[str, Any], fallback: str) -> str:
     address = document.get("address") or {}
     road_address = document.get("road_address") or {}
-    for source in (address, road_address):
+    for source in (road_address, address):
         region_3depth_name = source.get("region_3depth_name")
         if region_3depth_name:
             return region_3depth_name
@@ -95,18 +111,19 @@ def _extract_dong(document: dict[str, Any], fallback: str) -> str:
 
 def sample_restaurants() -> list[dict[str, Any]]:
     samples = [
-        ("sample-1", "을지로국밥", "한식", "서울 중구 을지로 일대", 250),
-        ("sample-2", "명동칼국수", "면요리", "서울 중구 명동 일대", 780),
-        ("sample-3", "충무로돈까스", "일식", "서울 중구 충무로 일대", 920),
-        ("sample-4", "을지로제육식당", "한식", "서울 중구 을지로 일대", 430),
-        ("sample-5", "시청샐러드랩", "샐러드", "서울 중구 시청 일대", 1380),
-        ("sample-6", "을지로중화반점", "중식", "서울 중구 을지로 일대", 640),
-        ("sample-7", "동대문비빔밥", "한식", "서울 중구 동대문 일대", 1490),
-        ("sample-8", "을지로파스타랩", "양식", "서울 중구 을지로 일대", 580),
+        ("sample-1", "을지칼국수", "한식", "서울특별시 중구 을지로 16", 180),
+        ("sample-2", "명동김밥", "분식", "서울특별시 중구 을지로 22", 320),
+        ("sample-3", "광화문샐러드", "샐러드", "서울특별시 중구 세종대로 30", 480),
+        ("sample-4", "시청제육식당", "한식", "서울특별시 중구 을지로 8", 540),
+        ("sample-5", "을지초밥", "일식", "서울특별시 중구 무교로 14", 610),
+        ("sample-6", "무교동국밥", "한식", "서울특별시 중구 무교로 22", 710),
+        ("sample-7", "시청파스타", "양식", "서울특별시 중구 태평로 1가 23", 840),
+        ("sample-8", "을지로불고기", "한식", "서울특별시 중구 을지로 29", 980),
     ]
-    rows = []
+    rows: list[dict[str, Any]] = []
     for external_id, name, category, address, distance_m in samples:
         main_menu, estimated_calories = infer_menu_and_calories(name, category)
+        party_size_min, party_size_max = infer_party_size_range(name, category)
         rows.append(
             {
                 "external_id": external_id,
@@ -129,6 +146,8 @@ def sample_restaurants() -> list[dict[str, Any]]:
                 "noodle_score": 2,
                 "rice_score": 2,
                 "price_level": "보통",
+                "party_size_min": party_size_min,
+                "party_size_max": party_size_max,
                 "is_active": 1,
             }
         )
@@ -209,13 +228,15 @@ def search_food_places_by_category(x: str, y: str, radius_m: int) -> list[dict[s
 
         data = response.json()
         for item in data.get("documents", []):
-            place_id = item.get("id")
+            place_id = str(item.get("id") or "").strip()
             if not place_id or place_id in seen_ids:
                 continue
             seen_ids.add(place_id)
+
             category = item.get("category_name") or item.get("category_group_name") or "음식점"
             name = item.get("place_name", "")
             main_menu, estimated_calories = infer_menu_and_calories(name, category)
+            party_size_min, party_size_max = infer_party_size_range(name, category)
             restaurants.append(
                 {
                     "external_id": f"kakao-{place_id}",
@@ -238,6 +259,8 @@ def search_food_places_by_category(x: str, y: str, radius_m: int) -> list[dict[s
                     "noodle_score": 2,
                     "rice_score": 2,
                     "price_level": "보통",
+                    "party_size_min": party_size_min,
+                    "party_size_max": party_size_max,
                     "is_active": 1,
                 }
             )
@@ -250,7 +273,10 @@ def search_food_places_by_category(x: str, y: str, radius_m: int) -> list[dict[s
     return restaurants
 
 
-def fetch_nearby_restaurants(address: str | None = None, radius_m: int | None = None) -> tuple[dict[str, str], list[dict[str, Any]]]:
+def fetch_nearby_restaurants(
+    address: str | None = None,
+    radius_m: int | None = None,
+) -> tuple[dict[str, str], list[dict[str, Any]]]:
     if not has_kakao_api_key():
         raise KakaoLocalError("KAKAO_REST_API_KEY가 설정되어 있지 않습니다.")
 
