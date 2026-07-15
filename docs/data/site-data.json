@@ -1208,48 +1208,10 @@
       "recommendation_type": "추가 후보"
     }
   ],
-  "visits": [
-    {
-      "restaurant_name": "무교동국밥",
-      "restaurant_id": "sample-6",
-      "visited_on": "2026-07-08",
-      "visit_count": 1,
-      "party_size": 3
-    },
-    {
-      "restaurant_name": "을지칼국수",
-      "restaurant_id": "sample-1",
-      "visited_on": "2026-07-05",
-      "visit_count": 1,
-      "party_size": 2
-    }
-  ],
-  "visit_history": [
-    {
-      "date": "2026-07-05",
-      "restaurant_id": "sample-1",
-      "restaurant_name": "을지칼국수",
-      "party_size": 2,
-      "decision": "selected",
-      "base_address": "서울특별시 중구 을지로 16",
-      "dong_name": "을지로동",
-      "weather_summary": "맑음",
-      "selected_at": "2026-07-05T12:10:00+09:00"
-    },
-    {
-      "date": "2026-07-08",
-      "restaurant_id": "sample-6",
-      "restaurant_name": "무교동국밥",
-      "party_size": 3,
-      "decision": "selected",
-      "base_address": "서울특별시 중구 을지로 16",
-      "dong_name": "을지로동",
-      "weather_summary": "비",
-      "selected_at": "2026-07-08T12:15:00+09:00"
-    }
-  ],
-  "sheet_url": "",
+  "visits": [],
+  "visit_history": [],
+  "sheet_url": "https://docs.google.com/spreadsheets/d/1ZdSoj2x0H2L-KWMzU7yo5Pp9WfnyBbxxnoHF3Y7bVyw",
   "warning": "",
-  "generated_at": "2026-07-15T14:30:42.827376+09:00",
+  "generated_at": "2026-07-15T17:11:10.948874+09:00",
   "updated_for_date": "2026-07-15"
 }
