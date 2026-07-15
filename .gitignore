@@ -25,6 +25,7 @@ desktop.ini
 # Backup and temporary files
 *.bak
 *~
+*.gsheet
 
 # Streamlit cache
 .streamlit/
