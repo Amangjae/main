@@ -8,7 +8,7 @@
   "weather": {
     "category": "cloudy",
     "summary": "흐림",
-    "temperature_c": 27,
+    "temperature_c": 26,
     "note": "흐린 날이라 이동과 식사 균형이 좋은 식당을 골랐습니다."
   },
   "restaurants": [
@@ -1157,23 +1157,6 @@
       "recommendation_type": "새로운 후보"
     },
     {
-      "id": "kakao-26966188",
-      "name": "구이구이 시청직영점",
-      "category": "음식점 > 한식 > 해물,생선",
-      "distance_m": 28,
-      "price_level": "보통",
-      "main_menu": "백반",
-      "estimated_calories": 700,
-      "party_size_min": 2,
-      "party_size_max": 8,
-      "place_url": "http://place.map.kakao.com/26966188",
-      "address": "서울 중구 을지로 6",
-      "score": 5.77,
-      "reason": "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다. / 아직 선택 기록이 적어서 새로운 후보로 올렸습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 28m 거리입니다.",
-      "total_visits": 0,
-      "recommendation_type": "추가 후보"
-    },
-    {
       "id": "kakao-700191547",
       "name": "청담동마녀김밥 서울시청점",
       "category": "음식점 > 분식",
@@ -1206,9 +1189,33 @@
       "reason": "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다. / 아직 선택 기록이 적어서 새로운 후보로 올렸습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 34m 거리입니다.",
       "total_visits": 0,
       "recommendation_type": "추가 후보"
+    },
+    {
+      "id": "kakao-21537074",
+      "name": "명동칼국수 서울시청점",
+      "category": "음식점 > 한식 > 국수 > 명동칼국수",
+      "distance_m": 37,
+      "price_level": "보통",
+      "main_menu": "칼국수",
+      "estimated_calories": 600,
+      "party_size_min": 1,
+      "party_size_max": 4,
+      "place_url": "http://place.map.kakao.com/21537074",
+      "address": "서울 중구 을지로 지하 12",
+      "score": 5.76,
+      "reason": "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다. / 아직 선택 기록이 적어서 새로운 후보로 올렸습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 37m 거리입니다.",
+      "total_visits": 0,
+      "recommendation_type": "추가 후보"
     }
   ],
   "visits": [
+    {
+      "restaurant_name": "구이구이 시청직영점",
+      "restaurant_id": "kakao-26966188",
+      "visited_on": "2026-07-15",
+      "visit_count": 2,
+      "party_size": 2
+    },
     {
       "restaurant_name": "VIP참치 프레지던트호텔점",
       "restaurant_id": "kakao-7553256",
@@ -1245,10 +1252,38 @@
       "place_url": "http://place.map.kakao.com/7553256",
       "main_menu": "모둠초밥",
       "estimated_calories": 520
+    },
+    {
+      "date": "2026-07-15",
+      "restaurant_id": "kakao-26966188",
+      "restaurant_name": "구이구이 시청직영점",
+      "party_size": 2,
+      "decision": "selected",
+      "base_address": "서울특별시 중구 을지로 16",
+      "dong_name": "을지로1가",
+      "weather_summary": "흐림",
+      "selected_at": "2026-07-15T08:56:58.211Z",
+      "place_url": "http://place.map.kakao.com/26966188",
+      "main_menu": "백반",
+      "estimated_calories": 700
+    },
+    {
+      "date": "2026-07-15",
+      "restaurant_id": "kakao-26966188",
+      "restaurant_name": "구이구이 시청직영점",
+      "party_size": 2,
+      "decision": "selected",
+      "base_address": "서울특별시 중구 을지로 16",
+      "dong_name": "을지로1가",
+      "weather_summary": "흐림",
+      "selected_at": "2026-07-15T08:57:00.143Z",
+      "place_url": "http://place.map.kakao.com/26966188",
+      "main_menu": "백반",
+      "estimated_calories": 700
     }
   ],
   "sheet_url": "https://docs.google.com/spreadsheets/d/1ZdSoj2x0H2L-KWMzU7yo5Pp9WfnyBbxxnoHF3Y7bVyw",
   "warning": "",
-  "generated_at": "2026-07-15T17:41:03.339410+09:00",
-  "updated_for_date": "2026-07-15"
+  "generated_at": "2026-07-16T10:20:54.058892+09:00",
+  "updated_for_date": "2026-07-16"
 }
