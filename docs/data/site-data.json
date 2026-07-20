@@ -6,10 +6,10 @@
   "selection_endpoint": "",
   "dong_name": "을지로1가",
   "weather": {
-    "category": "cloudy",
-    "summary": "흐림",
-    "temperature_c": 26,
-    "note": "흐린 날이라 이동과 식사 균형이 좋은 식당을 골랐습니다."
+    "category": "rainy",
+    "summary": "비",
+    "temperature_c": 23,
+    "note": "비가 와서 실내 좌석과 가까운 거리를 우선 반영했습니다."
   },
   "restaurants": [
     {
@@ -1151,8 +1151,8 @@
       "party_size_max": 4,
       "place_url": "http://place.map.kakao.com/17552652",
       "address": "서울 중구 을지로 16",
-      "score": 5.8,
-      "reason": "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다. / 아직 선택 기록이 적어서 새로운 후보로 올렸습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 3m 거리입니다.",
+      "score": 9.8,
+      "reason": "비 오는 날이라 실내 식사와 국물 메뉴에 가점을 줬습니다. / 아직 선택 기록이 적어서 새로운 후보로 올렸습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 3m 거리입니다.",
       "total_visits": 0,
       "recommendation_type": "새로운 후보"
     },
@@ -1168,8 +1168,8 @@
       "party_size_max": 2,
       "place_url": "http://place.map.kakao.com/700191547",
       "address": "서울 중구 을지로 6",
-      "score": 5.77,
-      "reason": "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다. / 아직 선택 기록이 적어서 새로운 후보로 올렸습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 31m 거리입니다.",
+      "score": 9.77,
+      "reason": "비 오는 날이라 실내 식사와 국물 메뉴에 가점을 줬습니다. / 아직 선택 기록이 적어서 새로운 후보로 올렸습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 31m 거리입니다.",
       "total_visits": 0,
       "recommendation_type": "추가 후보"
     },
@@ -1185,8 +1185,8 @@
       "party_size_max": 4,
       "place_url": "http://place.map.kakao.com/1505045531",
       "address": "서울 중구 을지로 6",
-      "score": 5.76,
-      "reason": "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다. / 아직 선택 기록이 적어서 새로운 후보로 올렸습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 34m 거리입니다.",
+      "score": 9.76,
+      "reason": "비 오는 날이라 실내 식사와 국물 메뉴에 가점을 줬습니다. / 아직 선택 기록이 적어서 새로운 후보로 올렸습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 34m 거리입니다.",
       "total_visits": 0,
       "recommendation_type": "추가 후보"
     },
@@ -1202,8 +1202,8 @@
       "party_size_max": 4,
       "place_url": "http://place.map.kakao.com/21537074",
       "address": "서울 중구 을지로 지하 12",
-      "score": 5.76,
-      "reason": "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다. / 아직 선택 기록이 적어서 새로운 후보로 올렸습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 37m 거리입니다.",
+      "score": 9.76,
+      "reason": "비 오는 날이라 실내 식사와 국물 메뉴에 가점을 줬습니다. / 아직 선택 기록이 적어서 새로운 후보로 올렸습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 37m 거리입니다.",
       "total_visits": 0,
       "recommendation_type": "추가 후보"
     }
@@ -1284,6 +1284,6 @@
   ],
   "sheet_url": "https://docs.google.com/spreadsheets/d/1ZdSoj2x0H2L-KWMzU7yo5Pp9WfnyBbxxnoHF3Y7bVyw",
   "warning": "",
-  "generated_at": "2026-07-19T10:22:11.464034+09:00",
-  "updated_for_date": "2026-07-19"
+  "generated_at": "2026-07-20T11:46:43.881769+09:00",
+  "updated_for_date": "2026-07-20"
 }
