@@ -8,7 +8,7 @@
   "weather": {
     "category": "rainy",
     "summary": "비",
-    "temperature_c": 25,
+    "temperature_c": 24,
     "note": "비가 와서 실내 좌석과 가까운 거리를 우선 반영했습니다."
   },
   "restaurants": [
@@ -1284,6 +1284,6 @@
   ],
   "sheet_url": "https://docs.google.com/spreadsheets/d/1ZdSoj2x0H2L-KWMzU7yo5Pp9WfnyBbxxnoHF3Y7bVyw",
   "warning": "",
-  "generated_at": "2026-07-21T10:22:00.199758+09:00",
-  "updated_for_date": "2026-07-21"
+  "generated_at": "2026-07-22T10:20:29.901444+09:00",
+  "updated_for_date": "2026-07-22"
 }
