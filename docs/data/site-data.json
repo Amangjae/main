@@ -8,7 +8,7 @@
   "weather": {
     "category": "rainy",
     "summary": "비",
-    "temperature_c": 24,
+    "temperature_c": 27,
     "note": "비가 와서 실내 좌석과 가까운 거리를 우선 반영했습니다."
   },
   "restaurants": [
@@ -1140,6 +1140,40 @@
   ],
   "recommendations": [
     {
+      "id": "kakao-7553256",
+      "name": "VIP참치 프레지던트호텔점",
+      "category": "음식점 > 일식 > 참치회",
+      "distance_m": 1,
+      "price_level": "보통",
+      "main_menu": "모둠초밥",
+      "estimated_calories": 520,
+      "party_size_min": 2,
+      "party_size_max": 8,
+      "place_url": "http://place.map.kakao.com/7553256",
+      "address": "서울 중구 을지로 16",
+      "score": 9.97,
+      "reason": "비 오는 날이라 실내 식사와 국물 메뉴에 가점을 줬습니다. / 최근 방문 후 8일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 1m 거리입니다.",
+      "total_visits": 2,
+      "recommendation_type": "다시 가도 좋은 곳"
+    },
+    {
+      "id": "kakao-26966188",
+      "name": "구이구이 시청직영점",
+      "category": "음식점 > 한식 > 해물,생선",
+      "distance_m": 28,
+      "price_level": "보통",
+      "main_menu": "백반",
+      "estimated_calories": 700,
+      "party_size_min": 2,
+      "party_size_max": 8,
+      "place_url": "http://place.map.kakao.com/26966188",
+      "address": "서울 중구 을지로 6",
+      "score": 9.94,
+      "reason": "비 오는 날이라 실내 식사와 국물 메뉴에 가점을 줬습니다. / 최근 방문 후 8일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 28m 거리입니다.",
+      "total_visits": 2,
+      "recommendation_type": "다시 가도 좋은 곳"
+    },
+    {
       "id": "kakao-17552652",
       "name": "잠보",
       "category": "음식점 > 한식",
@@ -1170,40 +1204,6 @@
       "address": "서울 중구 을지로 6",
       "score": 9.77,
       "reason": "비 오는 날이라 실내 식사와 국물 메뉴에 가점을 줬습니다. / 아직 선택 기록이 적어서 새로운 후보로 올렸습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 31m 거리입니다.",
-      "total_visits": 0,
-      "recommendation_type": "추가 후보"
-    },
-    {
-      "id": "kakao-1505045531",
-      "name": "담솥 시청점",
-      "category": "음식점 > 한식",
-      "distance_m": 34,
-      "price_level": "보통",
-      "main_menu": "백반",
-      "estimated_calories": 700,
-      "party_size_min": 1,
-      "party_size_max": 4,
-      "place_url": "http://place.map.kakao.com/1505045531",
-      "address": "서울 중구 을지로 6",
-      "score": 9.76,
-      "reason": "비 오는 날이라 실내 식사와 국물 메뉴에 가점을 줬습니다. / 아직 선택 기록이 적어서 새로운 후보로 올렸습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 34m 거리입니다.",
-      "total_visits": 0,
-      "recommendation_type": "추가 후보"
-    },
-    {
-      "id": "kakao-21537074",
-      "name": "명동칼국수 서울시청점",
-      "category": "음식점 > 한식 > 국수 > 명동칼국수",
-      "distance_m": 37,
-      "price_level": "보통",
-      "main_menu": "칼국수",
-      "estimated_calories": 600,
-      "party_size_min": 1,
-      "party_size_max": 4,
-      "place_url": "http://place.map.kakao.com/21537074",
-      "address": "서울 중구 을지로 지하 12",
-      "score": 9.76,
-      "reason": "비 오는 날이라 실내 식사와 국물 메뉴에 가점을 줬습니다. / 아직 선택 기록이 적어서 새로운 후보로 올렸습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 37m 거리입니다.",
       "total_visits": 0,
       "recommendation_type": "추가 후보"
     }
@@ -1284,6 +1284,6 @@
   ],
   "sheet_url": "https://docs.google.com/spreadsheets/d/1ZdSoj2x0H2L-KWMzU7yo5Pp9WfnyBbxxnoHF3Y7bVyw",
   "warning": "",
-  "generated_at": "2026-07-22T10:20:29.901444+09:00",
-  "updated_for_date": "2026-07-22"
+  "generated_at": "2026-07-23T10:28:09.742028+09:00",
+  "updated_for_date": "2026-07-23"
 }
