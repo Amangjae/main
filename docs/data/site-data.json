@@ -8,7 +8,7 @@
   "weather": {
     "category": "hot",
     "summary": "덥고 습함",
-    "temperature_c": 30,
+    "temperature_c": 31,
     "note": "더운 날씨라 시원한 메뉴와 실내 좌석에 가점을 줬습니다."
   },
   "restaurants": [
@@ -1151,8 +1151,8 @@
       "party_size_max": 8,
       "place_url": "http://place.map.kakao.com/7553256",
       "address": "서울 중구 을지로 16",
-      "score": 10.13,
-      "reason": "더운 날이라 시원하게 먹기 쉬운 메뉴와 실내 좌석을 반영했습니다. / 최근 방문 후 22일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 1m 거리입니다.",
+      "score": 10.22,
+      "reason": "더운 날이라 시원하게 먹기 쉬운 메뉴와 실내 좌석을 반영했습니다. / 최근 방문 후 23일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 1m 거리입니다.",
       "total_visits": 2,
       "recommendation_type": "다시 가도 좋은 곳"
     },
@@ -1168,8 +1168,8 @@
       "party_size_max": 8,
       "place_url": "http://place.map.kakao.com/26966188",
       "address": "서울 중구 을지로 6",
-      "score": 10.1,
-      "reason": "더운 날이라 시원하게 먹기 쉬운 메뉴와 실내 좌석을 반영했습니다. / 최근 방문 후 22일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 28m 거리입니다.",
+      "score": 10.19,
+      "reason": "더운 날이라 시원하게 먹기 쉬운 메뉴와 실내 좌석을 반영했습니다. / 최근 방문 후 23일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 28m 거리입니다.",
       "total_visits": 2,
       "recommendation_type": "다시 가도 좋은 곳"
     },
@@ -1284,6 +1284,6 @@
   ],
   "sheet_url": "https://docs.google.com/spreadsheets/d/1ZdSoj2x0H2L-KWMzU7yo5Pp9WfnyBbxxnoHF3Y7bVyw",
   "warning": "",
-  "generated_at": "2026-08-06T10:18:13.834957+09:00",
-  "updated_for_date": "2026-08-06"
+  "generated_at": "2026-08-07T10:59:46.280893+09:00",
+  "updated_for_date": "2026-08-07"
 }
