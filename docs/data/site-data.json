@@ -6,10 +6,10 @@
   "selection_endpoint": "",
   "dong_name": "을지로1가",
   "weather": {
-    "category": "cloudy",
-    "summary": "흐림",
-    "temperature_c": 26,
-    "note": "흐린 날이라 이동과 식사 균형이 좋은 식당을 골랐습니다."
+    "category": "clear",
+    "summary": "맑음",
+    "temperature_c": 24,
+    "note": "무난한 날씨라 평소 점심으로 가기 편한 곳을 골랐습니다."
   },
   "restaurants": [
     {
@@ -1151,8 +1151,8 @@
       "party_size_max": 8,
       "place_url": "http://place.map.kakao.com/7553256",
       "address": "서울 중구 을지로 16",
-      "score": 7.55,
-      "reason": "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다. / 최근 방문 후 27일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 1m 거리입니다.",
+      "score": 7.63,
+      "reason": "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다. / 최근 방문 후 28일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 1m 거리입니다.",
       "total_visits": 2,
       "recommendation_type": "다시 가도 좋은 곳"
     },
@@ -1168,8 +1168,8 @@
       "party_size_max": 8,
       "place_url": "http://place.map.kakao.com/26966188",
       "address": "서울 중구 을지로 6",
-      "score": 7.52,
-      "reason": "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다. / 최근 방문 후 27일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 28m 거리입니다.",
+      "score": 7.6,
+      "reason": "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다. / 최근 방문 후 28일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 28m 거리입니다.",
       "total_visits": 2,
       "recommendation_type": "다시 가도 좋은 곳"
     },
@@ -1284,6 +1284,6 @@
   ],
   "sheet_url": "https://docs.google.com/spreadsheets/d/1ZdSoj2x0H2L-KWMzU7yo5Pp9WfnyBbxxnoHF3Y7bVyw",
   "warning": "",
-  "generated_at": "2026-08-11T09:46:37.284831+09:00",
-  "updated_for_date": "2026-08-11"
+  "generated_at": "2026-08-12T09:54:13.204758+09:00",
+  "updated_for_date": "2026-08-12"
 }
