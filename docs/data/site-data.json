@@ -340,7 +340,7 @@
     {
       "external_id": "kakao-8349008",
       "kakao_place_id": "8349008",
-      "name": "롯데호텔서울 무궁화",
+      "name": "더그랜드롯데 서울 무궁화",
       "category": "음식점 > 한식",
       "address": "서울 중구 소공동 1",
       "road_address": "서울 중구 을지로 30",
@@ -358,8 +358,8 @@
       "noodle_score": 2,
       "rice_score": 2,
       "price_level": "보통",
-      "party_size_min": 2,
-      "party_size_max": 8,
+      "party_size_min": 1,
+      "party_size_max": 4,
       "is_active": 1
     },
     {
@@ -540,7 +540,7 @@
     {
       "external_id": "kakao-7856128",
       "kakao_place_id": "7856128",
-      "name": "롯데호텔서울 모모야마",
+      "name": "더그랜드롯데 서울 모모야마",
       "category": "음식점 > 일식",
       "address": "서울 중구 을지로1가 180-6",
       "road_address": "서울 중구 을지로 30",
@@ -558,14 +558,14 @@
       "noodle_score": 2,
       "rice_score": 2,
       "price_level": "보통",
-      "party_size_min": 2,
-      "party_size_max": 8,
+      "party_size_min": 1,
+      "party_size_max": 4,
       "is_active": 1
     },
     {
       "external_id": "kakao-7856129",
       "kakao_place_id": "7856129",
-      "name": "롯데호텔서울 피에르가니에르서울",
+      "name": "더그랜드롯데 서울 피에르가니에르 서울",
       "category": "음식점 > 양식",
       "address": "서울 중구 을지로1가 180-6",
       "road_address": "서울 중구 을지로 30",
@@ -583,14 +583,14 @@
       "noodle_score": 2,
       "rice_score": 2,
       "price_level": "보통",
-      "party_size_min": 2,
-      "party_size_max": 8,
+      "party_size_min": 1,
+      "party_size_max": 4,
       "is_active": 1
     },
     {
       "external_id": "kakao-10357384",
       "kakao_place_id": "10357384",
-      "name": "롯데호텔서울 도림",
+      "name": "더그랜드롯데 서울 도림",
       "category": "음식점 > 중식",
       "address": "서울 중구 을지로1가 180-6",
       "road_address": "서울 중구 을지로 30",
@@ -608,8 +608,8 @@
       "noodle_score": 2,
       "rice_score": 2,
       "price_level": "보통",
-      "party_size_min": 2,
-      "party_size_max": 8,
+      "party_size_min": 1,
+      "party_size_max": 4,
       "is_active": 1
     },
     {
@@ -640,7 +640,7 @@
     {
       "external_id": "kakao-27348727",
       "kakao_place_id": "27348727",
-      "name": "롯데호텔서울 라세느",
+      "name": "더그랜드롯데 서울 라세느",
       "category": "음식점 > 뷔페",
       "address": "서울 중구 을지로1가 180-6",
       "road_address": "서울 중구 을지로 30",
@@ -665,7 +665,7 @@
     {
       "external_id": "kakao-21307169",
       "kakao_place_id": "21307169",
-      "name": "델리카한스 롯데호텔서울",
+      "name": "델리카한스 더그랜드롯데서울",
       "category": "음식점 > 간식 > 제과,베이커리",
       "address": "서울 중구 소공동 1",
       "road_address": "서울 중구 을지로 30",
@@ -683,8 +683,8 @@
       "noodle_score": 2,
       "rice_score": 2,
       "price_level": "보통",
-      "party_size_min": 2,
-      "party_size_max": 8,
+      "party_size_min": 1,
+      "party_size_max": 4,
       "is_active": 1
     },
     {
@@ -1151,8 +1151,8 @@
       "party_size_max": 8,
       "place_url": "http://place.map.kakao.com/7553256",
       "address": "서울 중구 을지로 16",
-      "score": 7.72,
-      "reason": "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다. / 최근 방문 후 29일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 1m 거리입니다.",
+      "score": 7.8,
+      "reason": "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다. / 최근 방문 후 30일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 1m 거리입니다.",
       "total_visits": 2,
       "recommendation_type": "다시 가도 좋은 곳"
     },
@@ -1168,8 +1168,8 @@
       "party_size_max": 8,
       "place_url": "http://place.map.kakao.com/26966188",
       "address": "서울 중구 을지로 6",
-      "score": 7.69,
-      "reason": "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다. / 최근 방문 후 29일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 28m 거리입니다.",
+      "score": 7.77,
+      "reason": "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다. / 최근 방문 후 30일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 28m 거리입니다.",
       "total_visits": 2,
       "recommendation_type": "다시 가도 좋은 곳"
     },
@@ -1284,6 +1284,6 @@
   ],
   "sheet_url": "https://docs.google.com/spreadsheets/d/1ZdSoj2x0H2L-KWMzU7yo5Pp9WfnyBbxxnoHF3Y7bVyw",
   "warning": "",
-  "generated_at": "2026-08-13T09:56:03.260816+09:00",
-  "updated_for_date": "2026-08-13"
+  "generated_at": "2026-08-14T09:55:04.995644+09:00",
+  "updated_for_date": "2026-08-14"
 }
