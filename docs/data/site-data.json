@@ -1152,7 +1152,7 @@
       "place_url": "http://place.map.kakao.com/7553256",
       "address": "서울 중구 을지로 16",
       "score": 12.1,
-      "reason": "비 오는 날이라 실내 식사와 국물 메뉴에 가점을 줬습니다. / 최근 방문 후 37일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 1m 거리입니다.",
+      "reason": "비 오는 날이라 실내 식사와 국물 메뉴에 가점을 줬습니다. / 최근 방문 후 38일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 1m 거리입니다.",
       "total_visits": 2,
       "recommendation_type": "다시 가도 좋은 곳"
     },
@@ -1169,7 +1169,7 @@
       "place_url": "http://place.map.kakao.com/26966188",
       "address": "서울 중구 을지로 6",
       "score": 12.07,
-      "reason": "비 오는 날이라 실내 식사와 국물 메뉴에 가점을 줬습니다. / 최근 방문 후 37일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 28m 거리입니다.",
+      "reason": "비 오는 날이라 실내 식사와 국물 메뉴에 가점을 줬습니다. / 최근 방문 후 38일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 28m 거리입니다.",
       "total_visits": 2,
       "recommendation_type": "다시 가도 좋은 곳"
     },
@@ -1284,6 +1284,6 @@
   ],
   "sheet_url": "https://docs.google.com/spreadsheets/d/1ZdSoj2x0H2L-KWMzU7yo5Pp9WfnyBbxxnoHF3Y7bVyw",
   "warning": "",
-  "generated_at": "2026-08-21T09:34:05.031142+09:00",
-  "updated_for_date": "2026-08-21"
+  "generated_at": "2026-08-22T09:31:14.631742+09:00",
+  "updated_for_date": "2026-08-22"
 }
