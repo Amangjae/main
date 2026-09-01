@@ -8,7 +8,7 @@
   "weather": {
     "category": "rainy",
     "summary": "비",
-    "temperature_c": 24,
+    "temperature_c": 25,
     "note": "비가 와서 실내 좌석과 가까운 거리를 우선 반영했습니다."
   },
   "restaurants": [
@@ -1152,7 +1152,7 @@
       "place_url": "http://place.map.kakao.com/7553256",
       "address": "서울 중구 을지로 16",
       "score": 12.1,
-      "reason": "비 오는 날이라 실내 식사와 국물 메뉴에 가점을 줬습니다. / 최근 방문 후 47일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 1m 거리입니다.",
+      "reason": "비 오는 날이라 실내 식사와 국물 메뉴에 가점을 줬습니다. / 최근 방문 후 48일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 1m 거리입니다.",
       "total_visits": 2,
       "recommendation_type": "다시 가도 좋은 곳"
     },
@@ -1169,7 +1169,7 @@
       "place_url": "http://place.map.kakao.com/26966188",
       "address": "서울 중구 을지로 6",
       "score": 12.07,
-      "reason": "비 오는 날이라 실내 식사와 국물 메뉴에 가점을 줬습니다. / 최근 방문 후 47일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 28m 거리입니다.",
+      "reason": "비 오는 날이라 실내 식사와 국물 메뉴에 가점을 줬습니다. / 최근 방문 후 48일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 28m 거리입니다.",
       "total_visits": 2,
       "recommendation_type": "다시 가도 좋은 곳"
     },
@@ -1284,6 +1284,6 @@
   ],
   "sheet_url": "https://docs.google.com/spreadsheets/d/1ZdSoj2x0H2L-KWMzU7yo5Pp9WfnyBbxxnoHF3Y7bVyw",
   "warning": "",
-  "generated_at": "2026-08-31T10:57:36.916328+09:00",
-  "updated_for_date": "2026-08-31"
+  "generated_at": "2026-09-01T11:19:48.899763+09:00",
+  "updated_for_date": "2026-09-01"
 }
