@@ -8,7 +8,7 @@
   "weather": {
     "category": "clear",
     "summary": "맑음",
-    "temperature_c": 19,
+    "temperature_c": 18,
     "note": "무난한 날씨라 평소 점심으로 가기 편한 곳을 골랐습니다."
   },
   "restaurants": [
@@ -813,6 +813,31 @@
       "is_active": 1
     },
     {
+      "external_id": "kakao-727908159",
+      "kakao_place_id": "727908159",
+      "name": "산도닭갈비 중구점",
+      "category": "음식점 > 한식 > 육류,고기 > 닭요리",
+      "address": "서울 중구 을지로1가 42",
+      "road_address": "서울 중구 남대문로9길 39",
+      "phone": "",
+      "place_url": "http://place.map.kakao.com/727908159",
+      "x": "126.980429383647",
+      "y": "37.566698371209",
+      "distance_m": 147,
+      "source": "kakao",
+      "main_menu": "백반",
+      "estimated_calories": 700,
+      "indoor_score": 4,
+      "spicy_score": 2,
+      "soup_score": 2,
+      "noodle_score": 2,
+      "rice_score": 2,
+      "price_level": "보통",
+      "party_size_min": 2,
+      "party_size_max": 8,
+      "is_active": 1
+    },
+    {
       "external_id": "kakao-21301719",
       "kakao_place_id": "21301719",
       "name": "서울특별시청 구내식당",
@@ -1111,31 +1136,6 @@
       "party_size_min": 2,
       "party_size_max": 8,
       "is_active": 1
-    },
-    {
-      "external_id": "kakao-902841891",
-      "kakao_place_id": "902841891",
-      "name": "고려당 롯데백화점본점",
-      "category": "음식점 > 간식 > 제과,베이커리",
-      "address": "서울 중구 소공동 1",
-      "road_address": "",
-      "phone": "02-726-4078",
-      "place_url": "http://place.map.kakao.com/902841891",
-      "x": "126.981242496276",
-      "y": "37.5650803143176",
-      "distance_m": 171,
-      "source": "kakao",
-      "main_menu": "대표 메뉴 정보 없음",
-      "estimated_calories": 0,
-      "indoor_score": 4,
-      "spicy_score": 2,
-      "soup_score": 2,
-      "noodle_score": 2,
-      "rice_score": 2,
-      "price_level": "보통",
-      "party_size_min": 1,
-      "party_size_max": 4,
-      "is_active": 1
     }
   ],
   "recommendations": [
@@ -1152,7 +1152,7 @@
       "place_url": "http://place.map.kakao.com/7553256",
       "address": "서울 중구 을지로 16",
       "score": 8.1,
-      "reason": "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다. / 최근 방문 후 78일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 1m 거리입니다.",
+      "reason": "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다. / 최근 방문 후 79일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 1m 거리입니다.",
       "total_visits": 2,
       "recommendation_type": "다시 가도 좋은 곳"
     },
@@ -1169,7 +1169,7 @@
       "place_url": "http://place.map.kakao.com/26966188",
       "address": "서울 중구 을지로 6",
       "score": 8.07,
-      "reason": "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다. / 최근 방문 후 78일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 28m 거리입니다.",
+      "reason": "무난한 날씨라 평소 점심으로 먹기 편한 메뉴를 반영했습니다. / 최근 방문 후 79일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 28m 거리입니다.",
       "total_visits": 2,
       "recommendation_type": "다시 가도 좋은 곳"
     },
@@ -1284,6 +1284,6 @@
   ],
   "sheet_url": "https://docs.google.com/spreadsheets/d/1ZdSoj2x0H2L-KWMzU7yo5Pp9WfnyBbxxnoHF3Y7bVyw",
   "warning": "",
-  "generated_at": "2026-10-01T11:46:53.488632+09:00",
-  "updated_for_date": "2026-10-01"
+  "generated_at": "2026-10-02T11:50:20.018498+09:00",
+  "updated_for_date": "2026-10-02"
 }
