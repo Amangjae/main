@@ -8,7 +8,7 @@
   "weather": {
     "category": "cold",
     "summary": "쌀쌀함",
-    "temperature_c": 1,
+    "temperature_c": 3,
     "note": "추운 날씨라 따뜻한 메뉴에 가점을 줬습니다."
   },
   "restaurants": [
@@ -1152,7 +1152,7 @@
       "place_url": "http://place.map.kakao.com/7553256",
       "address": "서울 중구 을지로 16",
       "score": 9.9,
-      "reason": "추운 날이라 든든한 식사와 국물 메뉴에 가점을 줬습니다. / 최근 방문 후 129일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 1m 거리입니다.",
+      "reason": "추운 날이라 든든한 식사와 국물 메뉴에 가점을 줬습니다. / 최근 방문 후 130일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 1m 거리입니다.",
       "total_visits": 2,
       "recommendation_type": "다시 가도 좋은 곳"
     },
@@ -1169,7 +1169,7 @@
       "place_url": "http://place.map.kakao.com/26966188",
       "address": "서울 중구 을지로 6",
       "score": 9.87,
-      "reason": "추운 날이라 든든한 식사와 국물 메뉴에 가점을 줬습니다. / 최근 방문 후 129일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 28m 거리입니다.",
+      "reason": "추운 날이라 든든한 식사와 국물 메뉴에 가점을 줬습니다. / 최근 방문 후 130일 지나 다시 가도 부담이 적습니다. / 2명 식사에 비교적 잘 맞는 곳입니다. / 기준 주소에서 약 28m 거리입니다.",
       "total_visits": 2,
       "recommendation_type": "다시 가도 좋은 곳"
     },
@@ -1284,6 +1284,6 @@
   ],
   "sheet_url": "https://docs.google.com/spreadsheets/d/1ZdSoj2x0H2L-KWMzU7yo5Pp9WfnyBbxxnoHF3Y7bVyw",
   "warning": "",
-  "generated_at": "2026-11-21T13:32:09.505794+09:00",
-  "updated_for_date": "2026-11-21"
+  "generated_at": "2026-11-22T12:46:34.602611+09:00",
+  "updated_for_date": "2026-11-22"
 }
